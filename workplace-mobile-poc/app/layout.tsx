@@ -7,6 +7,15 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
+      <head>
+        <link
+          rel="preload"
+          href="/fonts/PretendardStdVariable.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin=""
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

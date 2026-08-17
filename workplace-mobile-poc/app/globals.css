@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+/*
+ * Pretendard Std (variable) — SIL Open Font License 1.1
+ * https://github.com/orioncactus/pretendard
+ *
+ * Self-hosted on purpose. The design tokens below use 17 distinct weights
+ * (650, 670, 680, 690, 720, 730, ... 810, 820), which only render as
+ * distinct weights with a variable font; with a static fallback such as
+ * Apple SD Gothic Neo they all collapse to bold and the type hierarchy
+ * flattens out.
+ */
+@font-face {
+  font-family: "Pretendard Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 45 920;
+  src: url("/fonts/PretendardStdVariable.woff2") format("woff2-variations");
+}
+
+
 :root {
   --background: #f2f4f6;
   --card: #ffffff;
@@ -31,7 +50,7 @@ body {
   min-width: 320px;
   background: #e8ecf0;
   color: var(--text);
-  font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
   font-size: 15px;
   line-height: 1.45;
   word-break: keep-all;

@@ -170,6 +170,8 @@ function RoomCard({ room, date, start, duration, selected, onClick }: { room: Ro
 
 export function RoomEmployeePanel({ rooms, buildingId, onBuildingChange, onBook, onToast }: { rooms: RoomRecord[]; buildingId: BuildingId; onBuildingChange: (buildingId: BuildingId) => void; onBook: (room: RoomRecord, payload: RoomBookingPayload) => void; onToast: (message: string) => void }) {
   const [floorId, setFloorId] = useState<FloorId>("15");
+  const [scope, setScope] = useState<"floor" | "building">("floor");
+  const [availableOnly, setAvailableOnly] = useState(true);
   const [date, setDate] = useState("2026-08-18");
   const [start, setStart] = useState("14:00");
   const [duration, setDuration] = useState(30);
@@ -177,18 +179,35 @@ export function RoomEmployeePanel({ rooms, buildingId, onBuildingChange, onBook,
   const [selectedRoomId, setSelectedRoomId] = useState<string>();
   const [bookingRoomId, setBookingRoomId] = useState<string>();
   const buildingRooms = useMemo(() => rooms.filter((room) => room.buildingId === buildingId), [rooms, buildingId]);
-  const visibleRooms = useMemo(() => buildingRooms.filter((room) => room.floorId === floorId && room.capacity >= capacity), [buildingRooms, floorId, capacity]);
+  const scopedRooms = useMemo(() => buildingRooms.filter((room) => scope === "building" || room.floorId === floorId), [buildingRooms, scope, floorId]);
+  const visibleRooms = useMemo(() => scopedRooms
+    .filter((room) => room.capacity >= capacity)
+    .filter((room) => !availableOnly || roomAvailability(room, date, start, duration) === "available"), [scopedRooms, capacity, availableOnly, date, start, duration]);
   const selectedRoom = buildingRooms.find((room) => room.id === selectedRoomId);
   const bookingRoom = buildingRooms.find((room) => room.id === bookingRoomId);
-  const availableCount = visibleRooms.filter((room) => roomAvailability(room, date, start, duration) === "available").length;
+  const floorLabel = floors.find((floor) => floor.id === floorId)?.label ?? "";
 
   return <>
     <section className="room-intro room-finder-intro"><p className="eyebrow">MEETING SPACE</p><h1>회의실 찾기</h1><p>시간과 인원을 고르면 예약 가능한 공간을 바로 확인할 수 있어요.</p></section>
     <BuildingPicker value={buildingId} onChange={(building) => { onBuildingChange(building); setSelectedRoomId(undefined); setBookingRoomId(undefined); }} />
     {buildingRooms.length === 0 ? <LocationSetupState buildingId={buildingId} /> : <>
       <section className="room-booking-bar"><label><span>날짜</span><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label><label><span>시작</span><input type="time" step="900" value={start} onChange={(event) => setStart(event.target.value)} /></label><label><span>시간</span><select value={duration} onChange={(event) => setDuration(Number(event.target.value))}><option value={30}>30분</option><option value={60}>1시간</option><option value={90}>90분</option></select></label></section>
-      <section className="room-section-heading"><div><p className="eyebrow">AVAILABLE NOW</p><h2>예약 가능한 회의실</h2></div><span><b>{availableCount}</b>개 예약 가능</span></section>
-      <RoomFloorPicker value={floorId} onChange={(floor) => { setFloorId(floor); setSelectedRoomId(undefined); }} />
+      <section className="room-scope-bar">
+        <div className="room-scope-toggle">
+          <span className="room-scope-label">검색 범위</span>
+          <div className="segment-control" role="tablist" aria-label="검색 범위">
+            <button type="button" role="tab" aria-selected={scope === "floor"} className={scope === "floor" ? "selected" : ""} onClick={() => setScope("floor")}>선택 층</button>
+            <button type="button" role="tab" aria-selected={scope === "building"} className={scope === "building" ? "selected" : ""} onClick={() => setScope("building")}>건물 전체</button>
+          </div>
+        </div>
+        <label className="room-available-switch">
+          <span><b>예약 가능만</b><small>선택 시간 기준</small></span>
+          <input type="checkbox" role="switch" checked={availableOnly} onChange={(event) => setAvailableOnly(event.target.checked)} />
+          <span className="room-switch-track" aria-hidden="true" />
+        </label>
+      </section>
+      <section className="room-section-heading"><div><p className="eyebrow">ROOM FINDER{scope === "floor" ? ` · ${floorLabel}` : ""}</p><h2>예약 가능한 회의실</h2></div><span><b>{visibleRooms.length}</b>개 표시</span></section>
+      {scope === "floor" && <RoomFloorPicker value={floorId} onChange={(floor) => { setFloorId(floor); setSelectedRoomId(undefined); }} />}
       <div className="room-capacity-filter"><button className={capacity === 0 ? "selected" : ""} onClick={() => setCapacity(0)}>전체</button><button className={capacity === 6 ? "selected" : ""} onClick={() => setCapacity(6)}>6명+</button><button className={capacity === 10 ? "selected" : ""} onClick={() => setCapacity(10)}>10명+</button><button className={capacity === 16 ? "selected" : ""} onClick={() => setCapacity(16)}>16명+</button></div>
       <div className="room-list">{visibleRooms.map((room) => <RoomCard key={room.id} room={room} date={date} start={start} duration={duration} selected={selectedRoomId === room.id} onClick={() => setSelectedRoomId(room.id)} />)}</div>
       {selectedRoom && <section className="room-selected-card"><div><span><RoomIcon name="room" /></span><div><small>선택한 회의실</small><b>{selectedRoom.name}</b><em>{selectedRoom.capacity}명 · {selectedRoom.equipment.join(" · ")}</em></div></div><button disabled={roomAvailability(selectedRoom, date, start, duration) !== "available"} onClick={() => setBookingRoomId(selectedRoom.id)}>{roomAvailability(selectedRoom, date, start, duration) === "available" ? `${start} 예약하기` : "다른 시간 선택"}</button></section>}

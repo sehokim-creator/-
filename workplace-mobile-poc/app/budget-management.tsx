@@ -27,6 +27,22 @@ const budgetRequests = [
   { id: "BR-2026-079", type: "공간", title: "신규 좌석 가구 도입", amount: "8,500만원", costCenter: "WP-4100", status: "예산 확보" },
 ];
 
+export const costSignals = [
+  { id: "편의점 운영비", owner: "복리후생 운영", source: "ERP·편의점 비용 모니터링", amount: "18,400,000원", baseline: "15,600,000원", change: "+18%", notable: true },
+  { id: "공용부 전력비", owner: "시설 운영", source: "ERP·Green Metrics", amount: "32,800,000원", baseline: "31,400,000원", change: "+4%", notable: false },
+];
+
+export const contractReviewCount = 4;
+
+export function getBudgetOverview() {
+  const totals = pangyoBudget.reduce((sum, item) => ({
+    budget: sum.budget + item.budget,
+    actual: sum.actual + item.actual,
+    committed: sum.committed + item.committed,
+  }), { budget: 0, actual: 0, committed: 0 });
+  return { ...totals, available: totals.budget - totals.actual - totals.committed };
+}
+
 function budgetRequestTone(status: string) {
   if (status === "예산 확보") return "secured";
   if (status === "승인 대기") return "approval";
@@ -49,6 +65,7 @@ function billionWon(value: number) {
 export function BudgetAdminScreen() {
   const [buildingId, setBuildingId] = useState<BuildingId>("pangyo");
   const [year, setYear] = useState("2026");
+  const [tab, setTab] = useState<"budget" | "contract">("budget");
   const categories = buildingId === "pangyo" && year === "2026" ? pangyoBudget : [];
   const totals = categories.reduce((sum, item) => ({
     budget: sum.budget + item.budget,
@@ -62,14 +79,25 @@ export function BudgetAdminScreen() {
   return (
     <main className="screen budget-admin-screen">
       <section className="budget-admin-intro">
-        <div><p className="eyebrow">BUDGET CONTROL</p><h1>예산·비용 관리</h1><p>업무 요청부터 승인, 발주 약정, 실제 집행까지 한 흐름으로 확인합니다.</p></div>
+        <div><p className="eyebrow">COST &amp; CONTRACT</p><h1>비용·계약 관리</h1><p>업무 요청·예산·집행·계약 갱신을 연결하되 회계 원장은 ERP에 유지합니다.</p></div>
         <label><span>회계연도</span><select value={year} onChange={(event) => setYear(event.target.value)}><option>2026</option><option>2025</option></select></label>
       </section>
 
       <BuildingPicker value={buildingId} label="예산 건물" onChange={setBuildingId} />
       <p className="budget-poc-note">현재 금액은 POC 예시 데이터이며, 실제 운영에서는 ERP의 승인예산·발주·전표 값을 읽어옵니다.</p>
 
-      {categories.length === 0 ? (
+      <div className="segment-control budget-tab-control">
+        <button type="button" className={tab === "budget" ? "selected" : ""} onClick={() => setTab("budget")}>예산·비용</button>
+        <button type="button" className={tab === "contract" ? "selected" : ""} onClick={() => setTab("contract")}>계약</button>
+      </div>
+
+      {tab === "contract" ? (
+        <section className="budget-empty-state">
+          <span><BudgetGlyph name="link" /></span>
+          <h2>계약 관리는 준비 중이에요</h2>
+          <p>계약 갱신 D-90/D-60/D-30/D-7 알림은 운영 백엔드 연동 이후 이 탭에서 제공됩니다.</p>
+        </section>
+      ) : categories.length === 0 ? (
         <section className="budget-empty-state">
           <span><BudgetGlyph name="wallet" /></span>
           <h2>{getWorkplaceBuilding(buildingId).name} {year} 예산 미등록</h2>
@@ -89,6 +117,18 @@ export function BudgetAdminScreen() {
           <div className="budget-master-bar"><span style={{ width: `${actualRate}%` }} /><em style={{ left: `${actualRate}%`, width: `${Math.max(0, exposureRate - actualRate)}%` }} /></div>
           <div className="budget-bar-legend"><span className="actual">실제 집행 {actualRate}%</span><span className="commit">발주·약정 {exposureRate - actualRate}%</span><span className="remain">잔여 {100 - exposureRate}%</span></div>
         </section>
+
+        <section className="budget-section-heading"><div><p className="eyebrow">COST SIGNAL</p><h2>비용 이상 신호</h2></div><span>{costSignals.length}개</span></section>
+        <div className="budget-cost-signal-list">
+          {costSignals.map((signal) => (
+            <article key={signal.id} className={`budget-cost-signal-card${signal.notable ? " notable" : ""}`}>
+              <div className="budget-cost-signal-top"><small>{signal.owner}</small><em>{signal.change}</em></div>
+              <b>{signal.id}</b>
+              <small className="budget-cost-signal-source">{signal.source}</small>
+              <div className="budget-cost-signal-amounts"><b>{signal.amount}</b><small>기준 {signal.baseline}</small></div>
+            </article>
+          ))}
+        </div>
 
         <section className="budget-section-heading"><div><p className="eyebrow">BY CATEGORY</p><h2>항목별 예산 현황</h2></div><button>상세 보고서</button></section>
         <div className="budget-category-list">

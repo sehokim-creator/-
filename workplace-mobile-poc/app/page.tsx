@@ -21,15 +21,17 @@ import type {
 } from "./seat-management";
 import { createInitialRooms, getRoomStats } from "./room-management";
 import type { RoomBookingPayload, RoomRecord } from "./room-management";
-import { BudgetAdminScreen } from "./budget-management";
+import { BudgetAdminScreen, contractReviewCount, costSignals, getBudgetOverview } from "./budget-management";
 import { getWorkplaceBuilding } from "./workplace-locations";
+import { OaAdminScreen } from "./oa-management";
+import { DataFoundationCard, PeopleDirectoryScreen, getPeopleOverview } from "./people-directory";
 
-type Tab = "home" | "request" | "seat" | "mine" | "ops" | "seatAdmin" | "budgetAdmin";
-type NavigationTab = Exclude<Tab, "seatAdmin" | "budgetAdmin">;
-type Status = "접수" | "처리 중" | "완료";
+type Tab = "home" | "request" | "seat" | "mine" | "ops" | "seatAdmin" | "budgetAdmin" | "peopleAdmin" | "oaAdmin";
+type NavigationTab = Exclude<Tab, "seatAdmin" | "budgetAdmin" | "peopleAdmin" | "oaAdmin">;
+export type Status = "접수" | "처리 중" | "완료";
 type Priority = "일반" | "긴급";
 
-type RequestItem = {
+export type RequestItem = {
   id: string;
   category: string;
   categoryCode?: string;
@@ -749,6 +751,49 @@ const initialRequests: RequestItem[] = [
     created: "어제 13:30",
     description: "8월 18일 오전 10시 방문 예정인 협력사 차량 1대 등록 요청입니다.",
     sla: "5시간 30분 남음",
+  },
+  {
+    id: "REQ-20260818-017",
+    category: "시설·환경",
+    serviceItem: "시설 고장·수리",
+    title: "15층 남측 천장 누수 임시조치 확인",
+    status: "처리 중",
+    location: "판교 오피스 15층 / 남측 라운지",
+    assignee: "시설 운영팀",
+    updated: "오늘 13:06",
+    priority: "긴급",
+    created: "오늘 11:50",
+    description: "천장 타일에서 물이 스며듭니다. 임시조치 후 완전 조치 여부 확인이 필요합니다.",
+    sla: "1시간 12분 초과",
+  },
+  {
+    id: "REQ-20260818-020",
+    category: "OA·IT",
+    serviceItem: "반납",
+    title: "프로젝트용 노트북 반납 신청",
+    status: "처리 중",
+    location: "판교 오피스 1층 / OA 데스크",
+    assignee: "OA 회수 담당",
+    updated: "오늘 13:40",
+    priority: "일반",
+    created: "오늘 13:40",
+    description: "프로젝트 종료로 대여 노트북을 반납합니다.",
+    sla: "오늘 17:00까지",
+  },
+  {
+    id: "REQ-20260818-021",
+    category: "OA·IT",
+    serviceItem: "신규 지급·구매",
+    title: "디자인팀 MacBook Air 신규 지급",
+    status: "접수",
+    location: "판교 오피스 디자인팀",
+    assignee: "OA 운영팀",
+    updated: "오늘 12:25",
+    priority: "일반",
+    created: "오늘 12:25",
+    description: "디자인팀 신규 입사자 배정을 위한 MacBook Air 신규 지급 요청입니다.",
+    sla: "1영업일 남음",
+    approval: "팀장 승인 대기",
   },
 ];
 
@@ -1492,70 +1537,196 @@ function RequestDetailScreen({ request, onBack }: { request: RequestItem; onBack
   );
 }
 
-function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin, onOpenBudgetAdmin }: {
+type ExceptionBucket = "즉시" | "오늘" | "모니터링";
+type ExceptionItem = {
+  id: string;
+  kind: "SLA" | "미회수" | "승인" | "계약" | "비용";
+  badge: string;
+  title: string;
+  meta: string;
+  owner: string;
+  bucket: ExceptionBucket;
+  actionLabel: string;
+  onAction: () => void;
+};
+
+const queueStages = ["Catalog", "Request", "Assignment", "SLA"];
+
+function queueStageIndex(request: RequestItem) {
+  if (request.status === "완료") return 4;
+  if (request.status === "처리 중") return 3;
+  return 2;
+}
+
+function CaseQueueCard({ request, onAdvance }: { request: RequestItem; onAdvance: (request: RequestItem) => void }) {
+  const current = queueStageIndex(request);
+  const labels = [request.category, request.id, request.assignee === "배정 대기" ? "미배정" : request.assignee, request.sla];
+  return (
+    <article className="card queue-case-card">
+      <div className="oa-case-top"><span>{request.category}</span><StatusBadge status={request.status} /></div>
+      <h3>{request.title}</h3>
+      <p>{request.id}</p>
+      <p className="queue-case-location"><Icon name="pin" size={14} />{request.location}</p>
+      <div className="oa-pipeline">
+        {queueStages.map((stage, index) => (
+          <div className={`oa-pipeline-step ${index < current ? "done" : index === current ? "current" : ""}`} key={stage}>
+            <span className="oa-pipeline-dot" />
+            {index < queueStages.length - 1 && <span className="oa-pipeline-line" />}
+            <small>{labels[index]}</small>
+          </div>
+        ))}
+      </div>
+      <div className="oa-case-assignment">
+        <div><small>Assignment</small><b>{request.assignee === "배정 대기" ? "배정 대기" : request.assignee}</b></div>
+        <div><small>처리 기준</small><b className={request.sla.includes("초과") ? "sla-urgent" : ""}>{request.sla}</b></div>
+      </div>
+      <button className="oa-primary-button" onClick={() => onAdvance(request)}>{request.status === "접수" ? "담당자 배정·처리 시작" : "처리 결과 기록·완료"}</button>
+    </article>
+  );
+}
+
+function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin, onOpenBudgetAdmin, onOpenPeopleAdmin, onOpenOaAdmin }: {
   requests: RequestItem[];
   seatTotals: ReturnType<typeof getSeatTotals>;
   roomStats: ReturnType<typeof getRoomStats>;
   onAdvance: (request: RequestItem) => void;
   onOpenSeatAdmin: () => void;
   onOpenBudgetAdmin: () => void;
+  onOpenPeopleAdmin: () => void;
+  onOpenOaAdmin: () => void;
 }) {
+  const [exceptionFilter, setExceptionFilter] = useState<"전체" | ExceptionBucket>("전체");
+  const [queueFilter, setQueueFilter] = useState<"전체" | "SLA 위험" | "미배정" | "승인 대기">("전체");
   const newCount = requests.filter((request) => request.status === "접수").length;
   const processingCount = requests.filter((request) => request.status === "처리 중").length;
   const completedCount = requests.filter((request) => request.status === "완료").length;
-  const urgent = requests.filter((request) => request.priority === "긴급" && request.status !== "완료");
+  const openRequests = requests.filter((request) => request.status !== "완료");
+  const slaAtRiskCount = openRequests.filter((request) => request.sla.includes("분") || request.sla.includes("초과")).length;
+  const unassignedCount = openRequests.filter((request) => request.assignee === "배정 대기").length;
+  const approvalCount = openRequests.filter((request) => Boolean(request.approval)).length;
+  const budget = getBudgetOverview();
+  const people = getPeopleOverview();
+  const req017 = requests.find((request) => request.id === "REQ-20260818-017");
+  const req019 = requests.find((request) => request.id === "REQ-20260818-019");
+  const req021 = requests.find((request) => request.id === "REQ-20260818-021");
+
+  const exceptions: ExceptionItem[] = [
+    req017 && { id: req017.id, kind: "SLA", badge: req017.sla, title: `${req017.title}이 SLA를 초과했어요`, meta: `${req017.id} · ${req017.assignee}`, owner: "시설 운영팀 · FM 협력사", bucket: "즉시", actionLabel: "Queue에서 보기", onAction: () => onAdvance(req017) },
+    { id: "EX-oa-return", kind: "미회수", badge: "D+4", title: "대여 iPad 반납 확인이 4일 지났어요", meta: "박서연 · AMS 반납 예정 정보", owner: "OA 운영", bucket: "즉시", actionLabel: "OA 업무 열기", onAction: onOpenOaAdmin },
+    req019 && { id: req019.id, kind: "SLA", badge: req019.sla, title: `${req019.title}의 SLA가 임박했어요`, meta: `${req019.id} · ${req019.assignee}`, owner: "배정 대기", bucket: "오늘", actionLabel: "Queue에서 보기", onAction: () => onAdvance(req019) },
+    req021 && { id: req021.id, kind: "승인", badge: req021.sla, title: `${req021.title} 승인이 대기 중이에요`, meta: `${req021.id} · ${req021.approval}`, owner: req021.assignee, bucket: "오늘", actionLabel: "Queue에서 보기", onAction: () => onAdvance(req021) },
+    { id: "EX-cost", kind: "비용", badge: "+280만원", title: `${costSignals[0].id}가 기준보다 ${costSignals[0].change} 높아요`, meta: "1,840만원 / 최근 기준 1,560만원", owner: costSignals[0].owner, bucket: "오늘", actionLabel: "비용·계약 열기", onAction: onOpenBudgetAdmin },
+    { id: "EX-contract", kind: "계약", badge: "D-22", title: "판교 임대차 계약 갱신 결정을 시작해야 해요", meta: "연 5.6억원 · 내부 검토 D-30 기준 경과", owner: "Workplace 기획", bucket: "모니터링", actionLabel: "비용·계약 열기", onAction: onOpenBudgetAdmin },
+  ].filter((item): item is ExceptionItem => Boolean(item));
+
+  const visibleExceptions = exceptions.filter((item) => exceptionFilter === "전체" || item.bucket === exceptionFilter);
+  const bucketCount = (bucket: ExceptionBucket) => exceptions.filter((item) => item.bucket === bucket).length;
+
+  const visibleQueue = openRequests.filter((request) => {
+    if (queueFilter === "SLA 위험") return request.sla.includes("분") || request.sla.includes("초과");
+    if (queueFilter === "미배정") return request.assignee === "배정 대기";
+    if (queueFilter === "승인 대기") return Boolean(request.approval);
+    return true;
+  });
 
   return (
     <>
       <AppHeader title="운영현황" />
       <main className="screen ops-screen">
         <section className="ops-intro">
-          <div><p className="eyebrow">2026년 8월 18일</p><h1>오늘의 업무 현황</h1></div>
-          <button className="date-chip">오늘 <Icon name="chevron" size={15} /></button>
+          <div><p className="eyebrow">2026년 8월 18일 · ADMIN</p><h1>오늘 먼저 볼 업무</h1><p>통계보다 조치가 필요한 예외를 우선 보여드려요.</p></div>
+          <span className="tag-positive">POC</span>
         </section>
 
-        <section className="kpi-grid">
-          <article className="kpi-card"><span>신규 접수</span><b>{newCount}<small>건</small></b><em className="kpi-blue">확인 필요</em></article>
-          <article className="kpi-card"><span>처리 중</span><b>{processingCount}<small>건</small></b><em className="kpi-violet">정상 처리</em></article>
-          <article className="kpi-card"><span>SLA 임박</span><b>{urgent.length}<small>건</small></b><em className="kpi-orange">우선 확인</em></article>
-          <article className="kpi-card"><span>오늘 완료</span><b>{completedCount}<small>건</small></b><em className="kpi-green">완료</em></article>
-        </section>
-
-        <section className="ops-admin-tools" aria-label="관리자 도구">
-          <button className="seat-admin-entry" onClick={onOpenSeatAdmin}>
-            <span className="seat-admin-entry-icon"><Icon name="chair" size={24} /></span>
-            <span><small>SPACE MANAGEMENT</small><b>공간 운영 관리</b><em>좌석 {seatTotals.total}석 · 회의실 {roomStats.total}개 · 오늘 예약 {roomStats.bookings}건</em></span>
-            <strong>관리 열기 <Icon name="chevron" size={16} /></strong>
-          </button>
-          <button className="seat-admin-entry budget-admin-entry" onClick={onOpenBudgetAdmin}>
-            <span className="seat-admin-entry-icon"><Icon name="chart" size={24} /></span>
-            <span><small>BUDGET &amp; COST</small><b>예산·비용 관리</b><em>승인예산 12.0억원 · 가용잔액 3.1억원 · 검토 3건</em></span>
-            <strong>현황 열기 <Icon name="chevron" size={16} /></strong>
-          </button>
-        </section>
-
-        {urgent.length > 0 && (
-          <section className="sla-alert"><span><Icon name="alert" size={21} /></span><div><b>SLA 임박 요청이 있어요</b><small>{urgent[0].title} · {urgent[0].sla}</small></div><Icon name="chevron" size={17} /></section>
-        )}
-
-        <section className="ops-list-section">
-          <div className="section-heading"><div><p className="eyebrow">PRIORITY</p><h2>우선 확인 요청</h2></div><button>전체보기</button></div>
-          <div className="ops-request-list">
-            {requests.filter((request) => request.status !== "완료").map((request) => (
-              <article className="card ops-request-card" key={request.id}>
-                <div className="ops-card-top">
-                  <span className={request.priority === "긴급" ? "priority urgent" : "priority"}>{request.priority === "긴급" ? "긴급" : request.category}</span>
-                  <StatusBadge status={request.status} />
-                </div>
-                <h3>{request.title}</h3>
-                {request.serviceItem && <span className="ops-service-item">{request.serviceItem}</span>}
-                <p><Icon name="pin" size={15} />{request.location}</p>
-                <div className="ops-owner"><span className="owner-avatar"><Icon name="user" size={16} /></span><span><small>담당자</small><b>{request.assignee}</b></span><em className={request.sla.includes("분") ? "sla-urgent" : ""}>{request.sla}</em></div>
-                <button className="ops-action" onClick={() => onAdvance(request)}>{request.status === "접수" ? "담당자 배정·처리 시작" : "완료 처리"}</button>
+        <section className="exception-center">
+          <div className="section-heading exception-center-heading"><div><p className="eyebrow">ACTION / EXCEPTION CENTER</p><h2>지금 조치할 항목</h2></div><span>{exceptions.length}건</span></div>
+          <div className="filter-tabs exception-filter-tabs" role="tablist">
+            {(["전체", "즉시", "오늘", "모니터링"] as const).map((item) => (
+              <button role="tab" aria-selected={exceptionFilter === item} className={exceptionFilter === item ? "selected" : ""} key={item} onClick={() => setExceptionFilter(item)}>
+                {item}{item !== "전체" ? ` ${bucketCount(item)}` : ""}
+              </button>
+            ))}
+          </div>
+          <div className="exception-list">
+            {visibleExceptions.map((item) => (
+              <article className={`exception-card exception-${item.kind}`} key={item.id}>
+                <div className="exception-card-top"><span>{item.kind}</span><em>{item.badge}</em></div>
+                <h3>{item.title}</h3>
+                <p>{item.meta}</p>
+                <div className="exception-owner"><small>담당</small><b>{item.owner}</b></div>
+                <button onClick={item.onAction}>{item.actionLabel} <Icon name="chevron" size={15} /></button>
               </article>
             ))}
           </div>
         </section>
+
+        <section className="section-block admin-kpi-section">
+          <div className="section-heading"><div><p className="eyebrow">WORK KPI</p><h2>업무 처리</h2></div><span>완료 {completedCount}건</span></div>
+          <div className="budget-kpi-grid admin-kpi-grid">
+            <article><span>신규 접수</span><b>{newCount}<small>건</small></b><small>확인 필요</small></article>
+            <article><span>처리 중</span><b>{processingCount}<small>건</small></b><small>Task 진행</small></article>
+            <article className="attention"><span>SLA 위험</span><b>{slaAtRiskCount}<small>건</small></b><small>초과·임박</small></article>
+            <article><span>승인 대기</span><b>{approvalCount}<small>건</small></b><small>Approval</small></article>
+          </div>
+        </section>
+
+        <section className="section-block admin-kpi-section">
+          <div className="section-heading"><div><p className="eyebrow">WORKPLACE KPI</p><h2>공간 운영</h2></div><button onClick={onOpenSeatAdmin}>관리 열기</button></div>
+          <div className="budget-kpi-grid admin-kpi-grid">
+            <article><span>전체 좌석</span><b>{seatTotals.total}<small>석</small></b><small>고정·공유</small></article>
+            <article><span>배정 가능</span><b>{seatTotals.available}<small>석</small></b><small>오늘 기준</small></article>
+            <article><span>회의실 가능</span><b>{roomStats.available}<small>개</small></b><small>{roomStats.total}개 중</small></article>
+            <article><span>오늘 예약</span><b>{roomStats.bookings}<small>건</small></b><small>승인 {roomStats.pending}</small></article>
+          </div>
+        </section>
+
+        <section className="section-block admin-kpi-section">
+          <div className="section-heading"><div><p className="eyebrow">COST KPI</p><h2>비용·계약</h2></div><button onClick={onOpenBudgetAdmin}>현황 열기</button></div>
+          <div className="budget-kpi-grid admin-kpi-grid">
+            <article><span>승인 예산</span><b>{budget.budget.toFixed(1)}<small>억원</small></b><small>2026 POC</small></article>
+            <article><span>실제 집행</span><b>{budget.actual.toFixed(1)}<small>억원</small></b><small>ERP 예시</small></article>
+            <article><span>가용 잔액</span><b>{budget.available.toFixed(1)}<small>억원</small></b><small>요청 가능</small></article>
+            <article className="attention"><span>계약 검토</span><b>{contractReviewCount}<small>건</small></b><small>90일 이내</small></article>
+          </div>
+        </section>
+
+        <section className="section-block admin-kpi-section">
+          <div className="section-heading"><div><p className="eyebrow">PEOPLE KPI</p><h2>구성원 운영</h2></div><button onClick={onOpenPeopleAdmin}>통합 보기</button></div>
+          <div className="budget-kpi-grid admin-kpi-grid">
+            <article><span>재직 구성원</span><b>{people.active}<small>명</small></b><small>POC 스냅샷</small></article>
+            <article><span>입사 준비</span><b>{people.onboarding}<small>명</small></b><small>7일 이내</small></article>
+            <article><span>퇴사 준비</span><b>{people.offboarding}<small>명</small></b><small>OA 반납·권한</small></article>
+            <article className="attention"><span>정보 불일치</span><b>{people.mismatches}<small>건</small></b><small>확인 필요</small></article>
+          </div>
+        </section>
+
+        <section className="section-block admin-modules-section">
+          <div className="section-heading"><div><p className="eyebrow">ADMIN MODULES</p><h2>운영 모듈</h2></div></div>
+          <div className="admin-module-grid">
+            <button className="admin-module-tile" onClick={onOpenSeatAdmin}><span className="quick-action-icon tone-pink"><Icon name="chair" size={20} /></span><b>좌석·공간</b><small>정책·배정·예약</small></button>
+            <button className="admin-module-tile" onClick={onOpenPeopleAdmin}><span className="quick-action-icon tone-blue"><Icon name="user" size={20} /></span><b>구성원 지원 현황</b><small>업무·공간·OA 통합 조회</small></button>
+            <button className="admin-module-tile" onClick={onOpenOaAdmin}><span className="quick-action-icon tone-violet"><Icon name="package" size={20} /></span><b>OA 신청·반납</b><small>승인·현황 확인</small></button>
+            <button className="admin-module-tile" onClick={onOpenBudgetAdmin}><span className="quick-action-icon tone-mint"><Icon name="chart" size={20} /></span><b>비용·계약</b><small>ERP·갱신 연결</small></button>
+          </div>
+        </section>
+
+        <section className="section-block queue-section">
+          <div className="section-heading"><div><p className="eyebrow">TODAY WORK QUEUE</p><h2>오늘의 Case Queue</h2></div><span>{openRequests.length}건</span></div>
+          <div className="filter-tabs queue-filter-tabs" role="tablist">
+            {(["전체", "SLA 위험", "미배정", "승인 대기"] as const).map((item) => (
+              <button role="tab" aria-selected={queueFilter === item} className={queueFilter === item ? "selected" : ""} key={item} onClick={() => setQueueFilter(item)}>
+                {item}{item !== "전체" ? ` ${item === "SLA 위험" ? slaAtRiskCount : item === "미배정" ? unassignedCount : approvalCount}` : ""}
+              </button>
+            ))}
+          </div>
+          <div className="queue-case-list">
+            {visibleQueue.map((request) => <CaseQueueCard key={request.id} request={request} onAdvance={onAdvance} />)}
+          </div>
+        </section>
+
+        <DataFoundationCard />
+
+        <section className="ops-readiness-note"><b>운영 전 필수 기반</b><p>현재 화면은 React 메모리 기반 POC입니다. 실제 운영 전 DB 트랜잭션·Okta RBAC·서버 권한검사·AuditLog·예약 충돌 방지를 구현해야 합니다.</p></section>
       </main>
     </>
   );
@@ -1809,12 +1980,16 @@ export default function Home() {
         ) : activeTab === "seatAdmin" ? (
           <><AppHeader title="좌석·공간 관리" back onBack={() => changeTab("ops")} /><SpaceAdminScreen seats={seats} policies={seatPolicies} reservations={seatReservations} rooms={rooms} onAssign={assignSeat} onRelease={releaseSeat} onMove={moveSeat} onApprove={approveSeat} onUpdatePolicy={updateSeatPolicy} onReserveShared={reserveSharedSeatForEmployee} onCancelShared={cancelSharedSeat} onBookRoom={bookRoom} onToast={showToast} /></>
         ) : activeTab === "budgetAdmin" ? (
-          <><AppHeader title="예산·비용 관리" back onBack={() => changeTab("ops")} /><BudgetAdminScreen /></>
+          <><AppHeader title="비용·계약 관리" back onBack={() => changeTab("ops")} /><BudgetAdminScreen /></>
+        ) : activeTab === "peopleAdmin" ? (
+          <><AppHeader title="구성원 지원 현황" back onBack={() => changeTab("ops")} /><PeopleDirectoryScreen /></>
+        ) : activeTab === "oaAdmin" ? (
+          <><AppHeader title="OA 신청·반납" back onBack={() => changeTab("ops")} /><OaAdminScreen requests={requests} onAdvance={advanceRequest} /></>
         ) : (
-          <OpsScreen requests={requests} seatTotals={seatTotals} roomStats={roomStats} onAdvance={advanceRequest} onOpenSeatAdmin={() => changeTab("seatAdmin")} onOpenBudgetAdmin={() => changeTab("budgetAdmin")} />
+          <OpsScreen requests={requests} seatTotals={seatTotals} roomStats={roomStats} onAdvance={advanceRequest} onOpenSeatAdmin={() => changeTab("seatAdmin")} onOpenBudgetAdmin={() => changeTab("budgetAdmin")} onOpenPeopleAdmin={() => changeTab("peopleAdmin")} onOpenOaAdmin={() => changeTab("oaAdmin")} />
         )}
 
-        {!selectedRequest && activeTab !== "seatAdmin" && activeTab !== "budgetAdmin" && <BottomNavigation active={activeTab} onChange={(tab) => tab === "request" ? openRequest() : changeTab(tab)} />}
+        {!selectedRequest && activeTab !== "seatAdmin" && activeTab !== "budgetAdmin" && activeTab !== "peopleAdmin" && activeTab !== "oaAdmin" && <BottomNavigation active={activeTab} onChange={(tab) => tab === "request" ? openRequest() : changeTab(tab)} />}
         {toast && <div className="toast" role="status"><span><Icon name="check" size={16} /></span>{toast}</div>}
       </div>
     </div>

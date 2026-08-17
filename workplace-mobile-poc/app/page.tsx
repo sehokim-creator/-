@@ -22,9 +22,10 @@ import type {
 import { createInitialRooms, getRoomStats } from "./room-management";
 import type { RoomBookingPayload, RoomRecord } from "./room-management";
 import { BudgetAdminScreen } from "./budget-management";
+import { getWorkplaceBuilding } from "./workplace-locations";
 
 type Tab = "home" | "request" | "seat" | "mine" | "ops" | "seatAdmin" | "budgetAdmin";
-type NavigationTab = Exclude<Tab, "seat" | "seatAdmin" | "budgetAdmin">;
+type NavigationTab = Exclude<Tab, "seatAdmin" | "budgetAdmin">;
 type Status = "접수" | "처리 중" | "완료";
 type Priority = "일반" | "긴급";
 
@@ -846,8 +847,10 @@ function AppHeader({ title, back, onBack }: { title?: string; back?: boolean; on
   );
 }
 
-function HomeScreen({ requests, seatAvailability, roomAvailability, onOpenRequest, onOpenDetail, onGoMine, onOpenSeat }: {
+function HomeScreen({ requests, seats, rooms, seatAvailability, roomAvailability, onOpenRequest, onOpenDetail, onGoMine, onOpenSeat }: {
   requests: RequestItem[];
+  seats: SeatRecord[];
+  rooms: RoomRecord[];
   seatAvailability: number;
   roomAvailability: number;
   onOpenRequest: (category?: string, requestTypeId?: string) => void;
@@ -859,14 +862,48 @@ function HomeScreen({ requests, seatAvailability, roomAvailability, onOpenReques
   const [finderQuery, setFinderQuery] = useState("");
   const catalogMatches = useMemo(() => findCatalogMatches(finderQuery), [finderQuery]);
 
+  const employeeName = "김도윤";
+  const mySeat = seats.find((seat) => seat.assignedTo === "본인");
+  const myBooking = rooms
+    .map((room) => ({ room, booking: room.bookings.find((booking) => booking.date === "2026-08-18" && booking.organizer === employeeName) }))
+    .find((entry) => entry.booking);
+
   return (
     <>
       <AppHeader />
       <main className="screen home-screen">
-        <section className="hero-section">
-          <p className="eyebrow">안녕하세요</p>
-          <h1>필요한 총무 업무를<br />빠르게 요청하세요</h1>
+        <section className="profile-hero">
+          <span className="profile-avatar" aria-hidden="true">{employeeName[0]}</span>
+          <span className="profile-copy">
+            <small>안녕하세요</small>
+            <b>{employeeName}님</b>
+            <em>Product · {getWorkplaceBuilding(mySeat?.buildingId ?? "pangyo").name}</em>
+          </span>
+          <span className="tag-positive">오피스 근무</span>
         </section>
+
+        {(mySeat || myBooking) && (
+          <section className="card today-reservation-card">
+            <div className="section-heading">
+              <div><small>8월 18일 화요일</small><h2>오늘의 예약</h2></div>
+              <button type="button" className="link-accent" onClick={onOpenSeat}>공간 전체보기</button>
+            </div>
+            {mySeat && (
+              <div className="today-reservation-row">
+                <span className="today-reservation-icon tone-blue"><Icon name="chair" size={20} /></span>
+                <span><small>내 좌석</small><b>{mySeat.id}</b><em>{getWorkplaceBuilding(mySeat.buildingId).shortName} · {mySeat.floorId}층 · {mySeat.zoneLabel}</em></span>
+                <span className="tag-positive">배정 좌석</span>
+              </div>
+            )}
+            {myBooking?.booking && (
+              <div className="today-reservation-row">
+                <span className="today-reservation-icon tone-mint"><Icon name="building" size={20} /></span>
+                <span><small>내 회의실</small><b>{myBooking.room.name}</b><em>{myBooking.booking.start}–{myBooking.booking.end} · {myBooking.booking.title}</em></span>
+                <span className="tag-positive">예약 완료</span>
+              </div>
+            )}
+          </section>
+        )}
 
         <section className="smart-intake" aria-labelledby="smart-intake-title">
           <div className="smart-intake-heading">
@@ -914,6 +951,28 @@ function HomeScreen({ requests, seatAvailability, roomAvailability, onOpenReques
               )}
             </div>
           )}
+        </section>
+
+        <section className="section-block quick-action-section">
+          <div className="section-heading"><div><span className="eyebrow">QUICK ACTIONS</span><h2>바로 실행</h2></div><small>자주 쓰는 업무</small></div>
+          <div className="quick-action-grid">
+            <button type="button" className="quick-action-tile" onClick={onOpenSeat}>
+              <span className="quick-action-icon tone-blue"><Icon name="chair" size={20} /></span>
+              <b>좌석·회의실</b><small>예약 가능 공간 찾기</small>
+            </button>
+            <button type="button" className="quick-action-tile" onClick={() => onOpenRequest("출입·보안", "access-visitor")}>
+              <span className="quick-action-icon tone-blue"><Icon name="badge" size={20} /></span>
+              <b>방문자 등록</b><small>외부 방문 사전 신청</small>
+            </button>
+            <button type="button" className="quick-action-tile" onClick={() => onOpenRequest("OA·IT", "oa-return")}>
+              <span className="quick-action-icon tone-blue"><Icon name="package" size={20} /></span>
+              <b>OA 반납</b><small>기기 반납 신청</small>
+            </button>
+            <button type="button" className="quick-action-tile" onClick={onGoMine}>
+              <span className="quick-action-icon tone-blue"><Icon name="list" size={20} /></span>
+              <b>내 요청</b><small>진행 상태 확인</small>
+            </button>
+          </div>
         </section>
 
         <button className="active-summary" onClick={onGoMine}>
@@ -1505,9 +1564,10 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
 function BottomNavigation({ active, onChange }: { active: NavigationTab; onChange: (tab: NavigationTab) => void }) {
   const tabs: Array<{ id: NavigationTab; label: string; icon: IconName }> = [
     { id: "home", label: "홈", icon: "home" },
-    { id: "request", label: "업무 요청", icon: "plus" },
+    { id: "request", label: "신청", icon: "plus" },
+    { id: "seat", label: "공간", icon: "chair" },
     { id: "mine", label: "내 요청", icon: "list" },
-    { id: "ops", label: "운영현황", icon: "chart" },
+    { id: "ops", label: "운영", icon: "chart" },
   ];
 
   return (
@@ -1733,7 +1793,7 @@ export default function Home() {
         {selectedRequest ? (
           <RequestDetailScreen request={requests.find((item) => item.id === selectedRequest.id) || selectedRequest} onBack={() => setSelectedRequest(null)} />
         ) : activeTab === "home" ? (
-          <HomeScreen requests={requests} seatAvailability={seatTotals.available} roomAvailability={roomStats.available} onOpenRequest={openRequest} onOpenDetail={openDetail} onGoMine={() => changeTab("mine")} onOpenSeat={() => changeTab("seat")} />
+          <HomeScreen requests={requests} seats={seats} rooms={rooms} seatAvailability={seatTotals.available} roomAvailability={roomStats.available} onOpenRequest={openRequest} onOpenDetail={openDetail} onGoMine={() => changeTab("mine")} onOpenSeat={() => changeTab("seat")} />
         ) : activeTab === "request" ? (
           <RequestScreen
             key={`${initialCategory}:${initialRequestTypeId ?? "default"}`}
@@ -1754,7 +1814,7 @@ export default function Home() {
           <OpsScreen requests={requests} seatTotals={seatTotals} roomStats={roomStats} onAdvance={advanceRequest} onOpenSeatAdmin={() => changeTab("seatAdmin")} onOpenBudgetAdmin={() => changeTab("budgetAdmin")} />
         )}
 
-        {!selectedRequest && activeTab !== "seatAdmin" && activeTab !== "budgetAdmin" && activeTab !== "seat" && <BottomNavigation active={activeTab} onChange={(tab) => tab === "request" ? openRequest() : changeTab(tab)} />}
+        {!selectedRequest && activeTab !== "seatAdmin" && activeTab !== "budgetAdmin" && <BottomNavigation active={activeTab} onChange={(tab) => tab === "request" ? openRequest() : changeTab(tab)} />}
         {toast && <div className="toast" role="status"><span><Icon name="check" size={16} /></span>{toast}</div>}
       </div>
     </div>

@@ -1,0 +1,87 @@
+--- /mnt/data/workplace-mobile-poc-ccfceaf/app/workplace-locations.tsx	2026-08-17 16:20:34.527727798 +0000
++++ /mnt/data/workplace-mobile-poc-restored/app/workplace-locations.tsx	2026-08-17 16:19:58.214046091 +0000
+@@ -1,6 +1,6 @@
+ "use client";
+
+-export type BuildingId = "pangyo" | "future";
++export type BuildingId = "pangyo" | "seoul" | "gwangju" | "future";
+
+ export type WorkplaceBuilding = {
+   id: BuildingId;
+@@ -8,6 +8,7 @@
+   shortName: string;
+   description: string;
+   status: "active" | "setup";
++  requestEnabled: boolean;
+   floorLabels: string[];
+ };
+
+@@ -18,18 +19,40 @@
+     shortName: "판교",
+     description: "현재 운영 건물",
+     status: "active",
++    requestEnabled: true,
+     floorLabels: ["3층", "14층", "15층", "17층"],
+   },
+   {
++    id: "seoul",
++    name: "서울 오피스",
++    shortName: "서울",
++    description: "업무 요청 위치로 사용 중 · 공간 도면 미등록",
++    status: "setup",
++    requestEnabled: true,
++    floorLabels: [],
++  },
++  {
++    id: "gwangju",
++    name: "광주 오피스",
++    shortName: "광주",
++    description: "업무 요청 위치로 사용 중 · 공간 도면 미등록",
++    status: "setup",
++    requestEnabled: true,
++    floorLabels: [],
++  },
++  {
+     id: "future",
+     name: "신규 오피스",
+     shortName: "신규",
+     description: "확장 시 도면·정책 등록",
+     status: "setup",
++    requestEnabled: false,
+     floorLabels: [],
+   },
+ ];
+
++export const workplaceRequestBuildings = workplaceBuildings.filter((building) => building.requestEnabled);
++
+ export function getWorkplaceBuilding(buildingId: BuildingId) {
+   return workplaceBuildings.find((building) => building.id === buildingId) ?? workplaceBuildings[0];
+ }
+--- /mnt/data/workplace-mobile-poc-ccfceaf/app/page.tsx	2026-08-17 16:20:34.527451769 +0000
++++ /mnt/data/workplace-mobile-poc-restored/app/page.tsx	2026-08-17 16:19:58.214756255 +0000
+@@ -22,6 +22,7 @@
+ import { createInitialRooms, getRoomStats } from "./room-management";
+ import type { RoomBookingPayload, RoomRecord } from "./room-management";
+ import { BudgetAdminScreen } from "./budget-management";
++import { workplaceRequestBuildings } from "./workplace-locations";
+
+ type Tab = "home" | "request" | "seat" | "mine" | "ops" | "seatAdmin" | "budgetAdmin";
+ type NavigationTab = Exclude<Tab, "seat" | "seatAdmin" | "budgetAdmin">;
+@@ -988,7 +989,7 @@
+   const [category, setCategory] = useState(initialService.label);
+   const [requestTypeId, setRequestTypeId] = useState(initialRequestType.id);
+   const [values, setValues] = useState<FormValues>({});
+-  const [location, setLocation] = useState("판교 오피스");
++  const [location, setLocation] = useState(workplaceRequestBuildings[0]?.name ?? "판교 오피스");
+   const [detailLocation, setDetailLocation] = useState("");
+   const [priority, setPriority] = useState<Priority>(initialRequestType.defaultPriority ?? "일반");
+   const [additionalNotes, setAdditionalNotes] = useState("");
+@@ -1256,7 +1257,7 @@
+                   <label>오피스<em className="required-mark">필수</em></label>
+                   <div className="select-wrap">
+                     <select value={location} onChange={(event) => setLocation(event.target.value)}>
+-                      <option>판교 오피스</option><option>서울 오피스</option><option>광주 오피스</option>
++                      {workplaceRequestBuildings.map((building) => <option key={building.id} value={building.name}>{building.name}</option>)}
+                     </select>
+                     <Icon name="chevron" size={17} />
+                   </div>

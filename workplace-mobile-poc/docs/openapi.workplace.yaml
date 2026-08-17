@@ -1,0 +1,370 @@
+openapi: 3.1.0
+info:
+  title: Workplace Portal Integration API
+  version: 0.1.0-draft
+  description: |
+    Workplace Portal과 사내 ITSM·POP·SAP·AMS 연동 계층 사이의 초안 계약입니다.
+    실제 시스템 주소, 인증 서버, 상태 코드와 필수 필드는 사내 담당자 확인 후 확정해야 합니다.
+servers:
+  - url: https://workplace-api.company.example
+    description: Placeholder - replace with the internal API gateway URL
+security:
+  - oktaOidc: []
+tags:
+  - name: Service requests
+paths:
+  /api/v1/service-requests:
+    post:
+      tags: [Service requests]
+      operationId: createServiceRequest
+      summary: Create one canonical workplace service request
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestEnvelope'
+      responses:
+        '202':
+          description: Accepted for asynchronous processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestReceipt'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: The same idempotency key was used with a different payload
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /api/v1/service-requests/{requestId}:
+    get:
+      tags: [Service requests]
+      operationId: getServiceRequest
+      summary: Get the canonical request and external system references
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^REQ-[0-9]{8}-[0-9]{3,}$'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Current request state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceRequestEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Request not found or not visible to the caller
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+webhooks:
+  requestStatusChanged:
+    post:
+      operationId: receiveRequestStatusChanged
+      summary: Receive a signed request status event from the integration layer
+      parameters:
+        - name: X-Webhook-Id
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-Webhook-Timestamp
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-Webhook-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/cloudevents+json:
+            schema:
+              $ref: '#/components/schemas/RequestStatusChangedEvent'
+      responses:
+        '204':
+          description: Event verified and accepted
+        '401':
+          description: Invalid or expired signature
+components:
+  securitySchemes:
+    oktaOidc:
+      type: openIdConnect
+      openIdConnectUrl: https://company.okta.com/.well-known/openid-configuration
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Stable key for retrying the same logical create request safely
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 200
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      description: End-to-end trace identifier shared by every connected system
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 100
+  responses:
+    BadRequest:
+      description: Validation failed
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: Login or token is missing or invalid
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: The caller is not allowed to perform this action
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    ServiceRequestEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+        - schemaVersion
+        - source
+        - requestId
+        - idempotencyKey
+        - correlationId
+        - createdAt
+        - channel
+        - actor
+        - catalog
+        - request
+        - workflow
+        - sync
+      properties:
+        schemaVersion:
+          type: string
+          const: 1.0.0
+        source:
+          type: string
+          const: workplace-portal
+        requestId:
+          type: string
+          pattern: '^REQ-[0-9]{8}-[0-9]{3,}$'
+        idempotencyKey:
+          type: string
+        correlationId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        channel:
+          type: string
+          enum: [web, slack, teams, email]
+        actor:
+          $ref: '#/components/schemas/Actor'
+        catalog:
+          $ref: '#/components/schemas/CatalogReference'
+        request:
+          $ref: '#/components/schemas/RequestBody'
+        workflow:
+          $ref: '#/components/schemas/Workflow'
+        sync:
+          $ref: '#/components/schemas/SyncState'
+    Actor:
+      type: object
+      additionalProperties: false
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [employee, contractor]
+        subjectId:
+          type: string
+          description: Immutable Okta or employee subject identifier, never a display name
+        departmentCode:
+          type: string
+    CatalogReference:
+      type: object
+      additionalProperties: false
+      required: [categoryCode, itemCode]
+      properties:
+        categoryCode:
+          type: string
+          enum: [FACILITIES, OA_IT, ACCESS_SECURITY, SUPPLIES, PARKING_VEHICLE, SPACE_WORKPLACE]
+        itemCode:
+          type: string
+          description: Stable catalog item code such as oa-return or parking-visitor
+    RequestBody:
+      type: object
+      additionalProperties: false
+      required: [title, priority, location, description, fields]
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        priority:
+          type: string
+          enum: [일반, 긴급]
+        location:
+          type: string
+          maxLength: 300
+        description:
+          type: string
+          maxLength: 2000
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntegrationField'
+    IntegrationField:
+      type: object
+      additionalProperties: false
+      required: [key, label, value]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        value:
+          type: string
+    Workflow:
+      type: object
+      additionalProperties: false
+      required: [status, sla]
+      properties:
+        status:
+          type: string
+          enum: [접수, 처리 중, 완료]
+        route:
+          type: string
+        approval:
+          type: string
+        sla:
+          type: string
+    SyncState:
+      type: object
+      additionalProperties: false
+      required: [status, externalReferences]
+      properties:
+        status:
+          type: string
+          enum: [not_connected, pending, synced, failed]
+        externalReferences:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExternalReference'
+    ExternalReference:
+      type: object
+      additionalProperties: false
+      required: [system, externalId, status]
+      properties:
+        system:
+          type: string
+          enum: [ITSM, POP, SAP, AMS, SLACK]
+        externalId:
+          type: string
+        status:
+          type: string
+        lastSyncedAt:
+          type: string
+          format: date-time
+    RequestReceipt:
+      type: object
+      additionalProperties: false
+      required: [requestId, correlationId, status]
+      properties:
+        requestId:
+          type: string
+        correlationId:
+          type: string
+        status:
+          type: string
+          enum: [accepted, already_processed]
+        statusUrl:
+          type: string
+          format: uri
+    RequestStatusChangedEvent:
+      type: object
+      additionalProperties: false
+      required: [specversion, id, source, type, time, subject, data]
+      properties:
+        specversion:
+          type: string
+          const: '1.0'
+        id:
+          type: string
+        source:
+          type: string
+          format: uri-reference
+        type:
+          type: string
+          const: com.company.workplace.request.status-changed.v1
+        time:
+          type: string
+          format: date-time
+        subject:
+          type: string
+          description: Workplace request ID
+        data:
+          type: object
+          additionalProperties: false
+          required: [requestId, status, correlationId]
+          properties:
+            requestId:
+              type: string
+            status:
+              type: string
+              enum: [접수, 처리 중, 완료]
+            assigneeId:
+              type: string
+            correlationId:
+              type: string
+            externalReferences:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExternalReference'
+    Problem:
+      type: object
+      additionalProperties: true
+      required: [type, title, status, correlationId]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+        correlationId:
+          type: string

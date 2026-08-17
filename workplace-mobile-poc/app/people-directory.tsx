@@ -20,11 +20,11 @@ type Person = {
 };
 
 const people: Person[] = [
-  { id: "T10482", name: "김도윤", department: "Product", title: "Product Manager", status: "재직", workplace: "판교 오피스 · 14층", seat: "14F-N-A-001", amsAssets: "2대 · 조회", access: "정상", parking: "정기권", oaLoan: "없음", openRequests: 1 },
-  { id: "T11803", name: "박서연", department: "Engineering", title: "Software Engineer", status: "재직", workplace: "판교 오피스 · 15층", seat: "공유좌석", amsAssets: "2대 · 조회", access: "정상", parking: "없음", oaLoan: "iPad · D+4 지연", openRequests: 0 },
-  { id: "T12041", name: "이준호", department: "Design", title: "Product Designer", status: "입사 예정", workplace: "판교 오피스 · 배정 대기", seat: "배정 대기", amsAssets: "지급 대기", access: "발급 대기", parking: "없음", oaLoan: "없음", openRequests: 0 },
-  { id: "T09512", name: "최유진", department: "People", title: "People Partner", status: "퇴사 예정", workplace: "판교 오피스 · 3층", seat: "3F-A-014", amsAssets: "1대 · 반납 필요", access: "회수 예정", parking: "없음", oaLoan: "노트북 · 반납 필요", openRequests: 0 },
-  { id: "T11777", name: "정하늘", department: "Sales", title: "Account Executive", status: "재직", workplace: "판교 오피스 · 17층", seat: "17F-A-022", amsAssets: "1대 · 조회", access: "정상", parking: "정기권", oaLoan: "없음", openRequests: 0 },
+  { id: "T10482", name: "김세호", department: "Product", title: "Product Manager", status: "재직", workplace: "지식재산센터 · 14층", seat: "14F-N-A-001", amsAssets: "2대 · 조회", access: "정상", parking: "정기권", oaLoan: "없음", openRequests: 1 },
+  { id: "T11803", name: "박서연", department: "Engineering", title: "Software Engineer", status: "재직", workplace: "지식재산센터 · 15층", seat: "공유좌석", amsAssets: "2대 · 조회", access: "정상", parking: "없음", oaLoan: "iPad · D+4 지연", openRequests: 0 },
+  { id: "T12041", name: "이준호", department: "Design", title: "Product Designer", status: "입사 예정", workplace: "지식재산센터 · 배정 대기", seat: "배정 대기", amsAssets: "지급 대기", access: "발급 대기", parking: "없음", oaLoan: "없음", openRequests: 0 },
+  { id: "T09512", name: "최유진", department: "People", title: "People Partner", status: "퇴사 예정", workplace: "지식재산센터 · 3층", seat: "3F-A-014", amsAssets: "1대 · 반납 필요", access: "회수 예정", parking: "없음", oaLoan: "노트북 · 반납 필요", openRequests: 0 },
+  { id: "T11777", name: "정하늘", department: "Sales", title: "Account Executive", status: "재직", workplace: "지식재산센터 · 17층", seat: "17F-A-022", amsAssets: "1대 · 조회", access: "정상", parking: "정기권", oaLoan: "없음", openRequests: 0 },
 ];
 
 export function getPeopleOverview() {

@@ -14,8 +14,8 @@ export type WorkplaceBuilding = {
 export const workplaceBuildings: WorkplaceBuilding[] = [
   {
     id: "pangyo",
-    name: "판교 오피스",
-    shortName: "판교",
+    name: "지식재산센터",
+    shortName: "지식재산센터",
     description: "현재 운영 건물",
     status: "active",
     floorLabels: ["3층", "14층", "15층", "17층"],

@@ -705,7 +705,7 @@ const initialRequests: RequestItem[] = [
     category: "시설·환경",
     title: "8층 회의실 냉방 온도 확인",
     status: "처리 중",
-    location: "판교 오피스 8층 / A-08 회의실",
+    location: "지식재산센터 8층 / A-08 회의실",
     assignee: "김민재 매니저",
     updated: "오늘 16:20",
     priority: "일반",
@@ -718,7 +718,7 @@ const initialRequests: RequestItem[] = [
     category: "출입·보안",
     title: "출입카드 재발급 요청",
     status: "접수",
-    location: "판교 오피스 1층 안내데스크",
+    location: "지식재산센터 1층 안내데스크",
     assignee: "배정 대기",
     updated: "오늘 11:42",
     priority: "긴급",
@@ -731,7 +731,7 @@ const initialRequests: RequestItem[] = [
     category: "OA·IT",
     title: "27인치 모니터 화면 깜빡임",
     status: "완료",
-    location: "판교 오피스 7층 / 7F-124",
+    location: "지식재산센터 7층 / 7F-124",
     assignee: "박지훈 매니저",
     updated: "어제 17:35",
     priority: "일반",
@@ -744,7 +744,7 @@ const initialRequests: RequestItem[] = [
     category: "주차·차량",
     title: "외부 협력사 방문 주차 등록",
     status: "처리 중",
-    location: "판교 오피스 B2 주차장",
+    location: "지식재산센터 B2 주차장",
     assignee: "이지연 매니저",
     updated: "어제 15:10",
     priority: "일반",
@@ -758,7 +758,7 @@ const initialRequests: RequestItem[] = [
     serviceItem: "시설 고장·수리",
     title: "15층 남측 천장 누수 임시조치 확인",
     status: "처리 중",
-    location: "판교 오피스 15층 / 남측 라운지",
+    location: "지식재산센터 15층 / 남측 라운지",
     assignee: "시설 운영팀",
     updated: "오늘 13:06",
     priority: "긴급",
@@ -772,7 +772,7 @@ const initialRequests: RequestItem[] = [
     serviceItem: "반납",
     title: "프로젝트용 노트북 반납 신청",
     status: "처리 중",
-    location: "판교 오피스 1층 / OA 데스크",
+    location: "지식재산센터 1층 / OA 데스크",
     assignee: "OA 회수 담당",
     updated: "오늘 13:40",
     priority: "일반",
@@ -786,7 +786,7 @@ const initialRequests: RequestItem[] = [
     serviceItem: "신규 지급·구매",
     title: "디자인팀 MacBook Air 신규 지급",
     status: "접수",
-    location: "판교 오피스 디자인팀",
+    location: "지식재산센터 디자인팀",
     assignee: "OA 운영팀",
     updated: "오늘 12:25",
     priority: "일반",
@@ -907,7 +907,7 @@ function HomeScreen({ requests, seats, rooms, seatAvailability, roomAvailability
   const [finderQuery, setFinderQuery] = useState("");
   const catalogMatches = useMemo(() => findCatalogMatches(finderQuery), [finderQuery]);
 
-  const employeeName = "김도윤";
+  const employeeName = "김세호";
   const mySeat = seats.find((seat) => seat.assignedTo === "본인");
   const myBooking = rooms
     .map((room) => ({ room, booking: room.bookings.find((booking) => booking.date === "2026-08-18" && booking.organizer === employeeName) }))
@@ -1092,7 +1092,7 @@ function RequestScreen({ initialCategory, initialRequestTypeId, onSubmit, onBack
   const [category, setCategory] = useState(initialService.label);
   const [requestTypeId, setRequestTypeId] = useState(initialRequestType.id);
   const [values, setValues] = useState<FormValues>({});
-  const [location, setLocation] = useState("판교 오피스");
+  const [location, setLocation] = useState("지식재산센터");
   const [detailLocation, setDetailLocation] = useState("");
   const [priority, setPriority] = useState<Priority>(initialRequestType.defaultPriority ?? "일반");
   const [additionalNotes, setAdditionalNotes] = useState("");
@@ -1360,7 +1360,7 @@ function RequestScreen({ initialCategory, initialRequestTypeId, onSubmit, onBack
                   <label>오피스<em className="required-mark">필수</em></label>
                   <div className="select-wrap">
                     <select value={location} onChange={(event) => setLocation(event.target.value)}>
-                      <option>판교 오피스</option><option>서울 오피스</option><option>광주 오피스</option>
+                      <option>지식재산센터</option><option>서울 오피스</option><option>광주 오피스</option>
                     </select>
                     <Icon name="chevron" size={17} />
                   </div>
@@ -1616,7 +1616,7 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
     req019 && { id: req019.id, kind: "SLA", badge: req019.sla, title: `${req019.title}의 SLA가 임박했어요`, meta: `${req019.id} · ${req019.assignee}`, owner: "배정 대기", bucket: "오늘", actionLabel: "Queue에서 보기", onAction: () => onAdvance(req019) },
     req021 && { id: req021.id, kind: "승인", badge: req021.sla, title: `${req021.title} 승인이 대기 중이에요`, meta: `${req021.id} · ${req021.approval}`, owner: req021.assignee, bucket: "오늘", actionLabel: "Queue에서 보기", onAction: () => onAdvance(req021) },
     { id: "EX-cost", kind: "비용", badge: "+280만원", title: `${costSignals[0].id}가 기준보다 ${costSignals[0].change} 높아요`, meta: "1,840만원 / 최근 기준 1,560만원", owner: costSignals[0].owner, bucket: "오늘", actionLabel: "비용·계약 열기", onAction: onOpenBudgetAdmin },
-    { id: "EX-contract", kind: "계약", badge: "D-22", title: "판교 임대차 계약 갱신 결정을 시작해야 해요", meta: "연 5.6억원 · 내부 검토 D-30 기준 경과", owner: "Workplace 기획", bucket: "모니터링", actionLabel: "비용·계약 열기", onAction: onOpenBudgetAdmin },
+    { id: "EX-contract", kind: "계약", badge: "D-22", title: "지식재산센터 임대차 계약 갱신 결정을 시작해야 해요", meta: "연 5.6억원 · 내부 검토 D-30 기준 경과", owner: "Workplace 기획", bucket: "모니터링", actionLabel: "비용·계약 열기", onAction: onOpenBudgetAdmin },
   ].filter((item): item is ExceptionItem => Boolean(item));
 
   const visibleExceptions = exceptions.filter((item) => exceptionFilter === "전체" || item.bucket === exceptionFilter);

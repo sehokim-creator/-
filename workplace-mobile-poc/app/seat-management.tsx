@@ -198,7 +198,7 @@ const floorDefinitions: FloorDefinition[] = [
   },
 ];
 
-const people = ["김도윤", "박서연", "이준호", "최유진", "정하늘", "윤지수", "한예린", "오민석", "권수현", "배지훈", "문서윤", "장민재"];
+const people = ["김세호", "박서연", "이준호", "최유진", "정하늘", "윤지수", "한예린", "오민석", "권수현", "배지훈", "문서윤", "장민재"];
 const departments = ["Product", "Engineering", "Finance", "People", "Sales", "Security", "Workplace"];
 const POC_TODAY = "2026-08-18";
 // 현재 운영 기준은 전 구역 고정석이며, 관리자가 구역별로 공유좌석 전환을 시험할 수 있다.

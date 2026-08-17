@@ -74,7 +74,7 @@ export function createInitialRooms(): RoomRecord[] {
     const name = `${floorId}.${roomNumber} 회의실`;
     const capacity = [4, 6, 8, 10, 12, 16][index % 6];
     const bookings: RoomBooking[] = [];
-    if (index % 3 === 0) bookings.push({ id: `B-${index}-1`, organizer: "김도윤", department: "Product", title: "주간 업무회의", date: "2026-08-18", start: "14:00", end: "14:30", status: "confirmed" });
+    if (index % 3 === 0) bookings.push({ id: `B-${index}-1`, organizer: "김세호", department: "Product", title: "주간 업무회의", date: "2026-08-18", start: "14:00", end: "14:30", status: "confirmed" });
     if (index % 4 === 0) bookings.push({ id: `B-${index}-2`, organizer: "박서연", department: "Engineering", title: "프로젝트 리뷰", date: "2026-08-18", start: "16:00", end: "17:00", status: "confirmed" });
     return {
       id: `ROOM-${floorId}-${String(roomNumber).padStart(2, "0")}`,

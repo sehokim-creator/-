@@ -10,98 +10,119 @@ import {
   budgetMonthly,
   budgetTransactions,
 } from "./budget-actuals";
+import type { BudgetLine } from "./budget-actuals";
 
-/* ---------------------------------------------------------------------------
- * Money formatting
+/*
+ * 비용·계약 — laid out after the 예산관리 대시보드 it replaces.
  *
- * The source is in 원 and spans seven orders of magnitude — a 25억 lease line
- * next to a 1만원 licence. One unit for all of it either loses the small lines
- * or makes the big ones unreadable, so the unit follows the magnitude.
- * ------------------------------------------------------------------------- */
+ * The structure, the card order, the risk bands, the TOP-8 comparison, the
+ * numbered overrun list and the click-a-row-for-detail table are all that
+ * dashboard's. Three things are deliberately not copied:
+ *
+ *  1. Chart.js. The standalone build has to open from a filesystem with no
+ *     network, so the donut, gauge and column chart are hand-rolled SVG/CSS.
+ *  2. Its 양호/여유 colours. Teal #2dd4bf against green #22c55e measures ΔE 12.3
+ *     for normal vision (floor is 15) and 6.9 under tritanopia — the two "no
+ *     action needed" states were nearly the same colour. Re-stepped to
+ *     green/blue, which passes every check.
+ *  3. Its "편성 NaN + 증액 NaN" subtitle and its percent-ordered overrun list.
+ *     The export has no 편성/증액 split to show, and ordering overruns by percent
+ *     puts a 0원-budget line above a 1.6억 one.
+ *
+ * Added, because the dashboard has a gauge labelled 추이 but no time axis at all:
+ * a monthly column chart, and elapsed-time pacing on every rate.
+ */
+
+/* ------------------------------------------------------------------ format */
 
 function won(value: number): string {
   const abs = Math.abs(value);
-  if (abs >= 1e8) return `${(value / 1e8).toFixed(2)}억원`;
-  if (abs >= 1e4) return `${Math.round(value / 1e4).toLocaleString("ko-KR")}만원`;
+  if (abs >= 1e8) return `${(value / 1e8).toFixed(1)}억`;
+  if (abs >= 1e4) return `${Math.round(value / 1e4).toLocaleString("ko-KR")}만`;
   return `${Math.round(value).toLocaleString("ko-KR")}원`;
+}
+
+function fullWon(value: number): string {
+  return value.toLocaleString("ko-KR");
 }
 
 function billion(value: number): string {
   return `${(value / 1e8).toFixed(1)}억`;
 }
 
-function percent(part: number, whole: number): number {
-  return whole ? Math.round((part / whole) * 100) : 0;
+function rateOf(line: { budget: number; used: number }): number {
+  if (line.budget > 0) return (line.used / line.budget) * 100;
+  return line.used > 0 ? Infinity : 0;
 }
 
-/* ---------------------------------------------------------------------------
- * Pacing
- *
- * A spend total cannot be read on its own: 36% used is healthy in June and
- * alarming in February. Elapsed is counted in closed months, which is the basis
- * finance reconciles on, and every rate on the screen is shown against it.
- * ------------------------------------------------------------------------- */
-
-const elapsedRate = percent(budgetClosedMonths, budgetFiscalMonths);
-
-type PaceTone = "good" | "warning" | "critical" | "info";
-
-function paceOf(usedRate: number): { tone: PaceTone; label: string } {
-  const delta = usedRate - elapsedRate;
-  if (delta > 15) return { tone: "critical", label: "초과 페이스" };
-  if (delta > 5) return { tone: "warning", label: "빠른 집행" };
-  if (delta < -20) return { tone: "info", label: "집행 지연" };
-  return { tone: "good", label: "정상 페이스" };
+function showRate(rate: number): string {
+  return Number.isFinite(rate) ? `${rate.toFixed(1)}%` : "예산 0원";
 }
 
-function signedPoints(value: number): string {
-  const mark = value > 0 ? "+" : value < 0 ? "−" : "±";
-  return `${mark}${Math.abs(value)}%p`;
+/* -------------------------------------------------------------- risk bands */
+
+type RiskKey = "over" | "watch" | "ok" | "spare";
+
+const riskMeta: Record<RiskKey, { label: string; range: string }> = {
+  over: { label: "초과", range: ">100%" },
+  watch: { label: "주의", range: "80~100%" },
+  ok: { label: "양호", range: "50~80%" },
+  spare: { label: "여유", range: "<50%" },
+};
+
+const riskOrder: RiskKey[] = ["over", "watch", "ok", "spare"];
+
+function riskOf(line: { budget: number; used: number }): RiskKey {
+  const rate = rateOf(line);
+  if (rate > 100) return "over";
+  if (rate >= 80) return "watch";
+  if (rate >= 50) return "ok";
+  return "spare";
 }
 
-/* ---------------------------------------------------------------------------
- * Derived views over the snapshot
- * ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------- pacing */
 
-const totals = budgetLines.reduce(
-  (sum, line) => ({ budget: sum.budget + line.budget, used: sum.used + line.used }),
-  { budget: 0, used: 0 },
-);
-const totalRemain = totals.budget - totals.used;
-const usedRate = percent(totals.used, totals.budget);
+const elapsedRate = Math.round((budgetClosedMonths / budgetFiscalMonths) * 100);
 
-/*
- * Year-end landing, straight-line from the closed months. Deliberately the
- * simplest defensible method rather than a seasonal model — the card states the
- * basis beside the number, because an unstated forecast is worse than none.
- */
-const forecast = budgetClosedMonths ? (totals.used / budgetClosedMonths) * budgetFiscalMonths : 0;
-const forecastVariance = totals.budget - forecast;
+/* ------------------------------------------------------------- aggregates */
 
-/*
- * Overrun ranking is by absolute 원, not by percent.
- *
- * The source dashboard ranks on pct, which puts a 0원-budget line that spent
- * 20만원 (1284%) above a 1.6억 licence line at 114% — the percent is arithmetic
- * noise when the denominator is near zero, and it buries the overrun that
- * actually costs money. Percent is still shown; it just does not decide order.
- */
-const overBudget = budgetLines
+const totalBudget = budgetLines.reduce((sum, line) => sum + line.budget, 0);
+const totalUsed = budgetLines.reduce((sum, line) => sum + line.used, 0);
+const totalRemain = totalBudget - totalUsed;
+const overallRate = (totalUsed / totalBudget) * 100;
+
+const forecast = budgetClosedMonths ? (totalUsed / budgetClosedMonths) * budgetFiscalMonths : 0;
+const forecastVariance = totalBudget - forecast;
+
+const riskCounts = riskOrder.reduce<Record<RiskKey, number>>((acc, key) => {
+  acc[key] = budgetLines.filter((line) => riskOf(line) === key).length;
+  return acc;
+}, { over: 0, watch: 0, ok: 0, spare: 0 });
+
+const unusedCount = budgetLines.filter((line) => line.used === 0).length;
+
+const overLines = budgetLines
   .filter((line) => line.used > line.budget)
   .map((line) => ({ ...line, over: line.used - line.budget }))
   .sort((a, b) => b.over - a.over);
 
-const watchList = budgetLines
-  .filter((line) => line.used <= line.budget && line.budget > 0 && line.used / line.budget >= 0.8)
-  .sort((a, b) => b.used / b.budget - a.used / a.budget);
+const watchLines = budgetLines
+  .filter((line) => riskOf(line) === "watch")
+  .sort((a, b) => rateOf(b) - rateOf(a));
 
-const unusedList = budgetLines
-  .filter((line) => line.used === 0 && line.budget > 0)
-  .sort((a, b) => b.budget - a.budget);
+const byType = (["Opex", "Capex"] as const).map((type) => {
+  const rows = budgetLines.filter((line) => line.type === type);
+  return {
+    type,
+    count: rows.length,
+    budget: rows.reduce((sum, line) => sum + line.budget, 0),
+    used: rows.reduce((sum, line) => sum + line.used, 0),
+  };
+});
 
-function groupByAccount(lines: typeof budgetLines) {
+const byAccount = (() => {
   const map = new Map<string, { acct: string; budget: number; used: number; count: number }>();
-  for (const line of lines) {
+  for (const line of budgetLines) {
     const row = map.get(line.acct) ?? { acct: line.acct, budget: 0, used: 0, count: 0 };
     row.budget += line.budget;
     row.used += line.used;
@@ -109,315 +130,492 @@ function groupByAccount(lines: typeof budgetLines) {
     map.set(line.acct, row);
   }
   return [...map.values()].sort((a, b) => b.budget - a.budget);
-}
+})();
 
-const byType = (["Opex", "Capex"] as const).map((type) => {
-  const rows = budgetLines.filter((line) => line.type === type);
-  return {
-    type,
-    budget: rows.reduce((sum, line) => sum + line.budget, 0),
-    used: rows.reduce((sum, line) => sum + line.used, 0),
-    count: rows.length,
-  };
-});
-
-/*
- * Owner load. The transaction export carries a 담당자 the source dashboard never
- * surfaces, and "who is running which spend" is a question a 총무 lead asks
- * before the account breakdown.
- */
-const byOwner = (() => {
-  const map = new Map<string, { owner: string; amount: number; count: number }>();
+const txByCode = (() => {
+  const map = new Map<string, typeof budgetTransactions>();
   for (const tx of budgetTransactions) {
-    const row = map.get(tx.owner) ?? { owner: tx.owner, amount: 0, count: 0 };
-    row.amount += tx.amount;
-    row.count += 1;
-    map.set(tx.owner, row);
+    const rows = map.get(tx.code) ?? [];
+    rows.push(tx);
+    map.set(tx.code, rows);
   }
-  return [...map.values()].sort((a, b) => b.amount - a.amount);
+  for (const rows of map.values()) rows.sort((a, b) => b.date.localeCompare(a.date));
+  return map;
 })();
 
 const monthlyPeak = Math.max(...budgetMonthly.map((month) => month.amount), 1);
-const monthlyPlan = totals.budget / budgetFiscalMonths;
-const recentTransactions = [...budgetTransactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 12);
+const monthlyPlan = totalBudget / budgetFiscalMonths;
 
-const approvalCodes = Object.entries(budgetApprovals);
-export const contractReviewCount = approvalCodes.length;
-
-const lineByCode = new Map(budgetLines.map((line) => [line.code, line]));
+export const contractReviewCount = Object.keys(budgetApprovals).length;
+export const topOverspend = overLines[0];
 
 /** 운영현황 화면이 쓰는 요약값. 억원 단위. */
 export function getBudgetOverview() {
   return {
-    budget: totals.budget / 1e8,
-    actual: totals.used / 1e8,
+    budget: totalBudget / 1e8,
+    actual: totalUsed / 1e8,
     available: totalRemain / 1e8,
-    usedRate,
+    usedRate: Math.round(overallRate),
     elapsedRate,
   };
 }
 
-/** 운영현황 예외 카드가 쓰는 최대 초과 항목. */
-export const topOverspend = overBudget[0];
+/* -------------------------------------------------------------------- marks */
 
-/* ---------------------------------------------------------------------------
- * Marks
- * ------------------------------------------------------------------------- */
+/** 상태는 색만으로 전달하지 않습니다 — 배지가 항상 한글 라벨을 함께 답니다. */
+function RiskBadge({ line }: { line: { budget: number; used: number } }) {
+  const key = riskOf(line);
+  return <span className={`budget-risk-badge risk-${key}`}>{riskMeta[key].label}</span>;
+}
 
-/** 상태는 색만으로 전달하지 않습니다 — 모든 톤이 이 마크와 단어를 함께 씁니다. */
-function PaceGlyph({ tone }: { tone: PaceTone }) {
-  const content = {
-    good: <><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16 9" /></>,
-    warning: <><path d="M12 4l8 15H4l8-15Z" /><path d="M12 10v4M12 16.5v.5" /></>,
-    critical: <><circle cx="12" cy="12" r="9" /><path d="M12 7v6M12 16v.5" /></>,
-    info: <><circle cx="12" cy="12" r="9" /><path d="M12 8v8" /><path d="m8.5 12.5 3.5 3.5 3.5-3.5" /></>,
-  }[tone];
+/** 사용율 막대. 경과율 표식을 함께 그려 무엇에 대비한 비율인지 남깁니다. */
+function RateBar({ line, showMarker = true }: { line: { budget: number; used: number }; showMarker?: boolean }) {
+  const rate = rateOf(line);
+  const width = Number.isFinite(rate) ? Math.min(rate, 100) : 100;
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      {content}
-    </svg>
+    <span className={`budget-rate-bar risk-${riskOf(line)}`}>
+      <i style={{ width: `${width}%` }} />
+      {showMarker && <b style={{ left: `${elapsedRate}%` }} title={`연간 경과 ${elapsedRate}%`} />}
+    </span>
   );
 }
 
-function PaceBadge({ rate }: { rate: number }) {
-  const pace = paceOf(rate);
+/** 유형별 예산 구성 도넛. 가운데는 전체 사용율. */
+function Donut({ segments, centerValue, centerLabel }: {
+  segments: Array<{ key: string; value: number; className: string }>;
+  centerValue: string;
+  centerLabel: string;
+}) {
+  const total = segments.reduce((sum, segment) => sum + segment.value, 0) || 1;
+  const radius = 42;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
   return (
-    <em className={`pace-${pace.tone}`}>
-      <PaceGlyph tone={pace.tone} />
-      {pace.label} {signedPoints(rate - elapsedRate)}
-    </em>
-  );
-}
-
-/** 집행률 막대. 경과율 표식을 함께 그려 "무엇에 대비한 비율인지"를 남깁니다. */
-function UsageBar({ rate, label, size }: { rate: number; label: string; size?: "lg" }) {
-  return (
-    <div
-      className={`budget-usage-bar${size === "lg" ? " budget-usage-bar-lg" : ""}`}
-      role="img"
-      aria-label={`${label} 집행 ${rate}퍼센트, 연간 경과 ${elapsedRate}퍼센트`}
-    >
-      <span className={rate > 100 ? "over" : undefined} style={{ width: `${Math.min(rate, 100)}%` }} />
-      <i className="budget-pace-marker" style={{ left: `${elapsedRate}%` }} title={`연간 경과 ${elapsedRate}%`} />
+    <div className="budget-donut">
+      <svg viewBox="0 0 110 110" width="128" height="128" aria-hidden="true">
+        <circle className="budget-donut-track" cx="55" cy="55" r={radius} />
+        {segments.map((segment) => {
+          const length = (segment.value / total) * circumference;
+          const dash = `${Math.max(length - 2, 0)} ${circumference - Math.max(length - 2, 0)}`;
+          const rotation = (offset / total) * 360 - 90;
+          offset += segment.value;
+          return (
+            <circle
+              key={segment.key}
+              className={segment.className}
+              cx="55"
+              cy="55"
+              r={radius}
+              strokeDasharray={dash}
+              transform={`rotate(${rotation} 55 55)`}
+            />
+          );
+        })}
+      </svg>
+      <span className="budget-donut-center"><b>{centerValue}</b><small>{centerLabel}</small></span>
     </div>
   );
 }
 
-/* ---------------------------------------------------------------------------
- * Screen
- * ------------------------------------------------------------------------- */
-
-export function BudgetAdminScreen() {
-  const [tab, setTab] = useState<"budget" | "approval">("budget");
-  const [scope, setScope] = useState<"all" | "Opex" | "Capex">("all");
-
-  const accounts = useMemo(
-    () => groupByAccount(scope === "all" ? budgetLines : budgetLines.filter((line) => line.type === scope)),
-    [scope],
+/** 반원 게이지. 원본의 '예산 사용 현황 추이' 자리에 들어가는 마크입니다. */
+function Gauge({ rate }: { rate: number }) {
+  const clamped = Math.max(0, Math.min(rate, 100));
+  const radius = 62;
+  const arc = Math.PI * radius;
+  return (
+    <div className="budget-gauge">
+      <svg viewBox="0 0 150 84" width="100%" height="112" aria-hidden="true">
+        <path className="budget-gauge-track" d={`M 13 75 A ${radius} ${radius} 0 0 1 137 75`} />
+        <path
+          className="budget-gauge-fill"
+          d={`M 13 75 A ${radius} ${radius} 0 0 1 137 75`}
+          strokeDasharray={`${(clamped / 100) * arc} ${arc}`}
+        />
+      </svg>
+      <span className="budget-gauge-center"><b>{rate.toFixed(1)}%</b><small>전체 예산 사용율</small></span>
+    </div>
   );
+}
+
+/* -------------------------------------------------------------------- modal */
+
+function DetailModal({ line, onClose }: { line: BudgetLine; onClose: () => void }) {
+  const [tab, setTab] = useState<"approval" | "tx">("approval");
+  const approvals = budgetApprovals[line.code] ?? [];
+  const transactions = txByCode.get(line.code) ?? [];
+  const rate = rateOf(line);
 
   return (
-    <main className="screen budget-admin-screen">
-      <section className="budget-admin-intro">
+    <div className="budget-modal-scrim" role="dialog" aria-modal="true" aria-label={`${line.name} 상세`} onClick={onClose}>
+      <div className="budget-modal" onClick={(event) => event.stopPropagation()}>
+        <div className="budget-modal-head">
+          <div>
+            <b>{line.name}</b>
+            <small>{line.code} · {line.acct} · {line.type}</small>
+          </div>
+          <button type="button" className="budget-modal-close" onClick={onClose} aria-label="닫기">✕</button>
+        </div>
+
+        <div className="budget-modal-figures">
+          <span><small>총 예산</small><b>{fullWon(line.budget)}원</b></span>
+          <span><small>사용금액</small><b className={line.used > line.budget ? "over" : undefined}>{fullWon(line.used)}원</b></span>
+          <span><small>잔여예산</small><b className={line.remain < 0 ? "over" : "left"}>{fullWon(line.remain)}원</b></span>
+        </div>
+        <RateBar line={line} />
+        <div className="budget-modal-rate">
+          <small>사용율 {showRate(rate)} · 연간 경과 {elapsedRate}%</small>
+          <RiskBadge line={line} />
+        </div>
+
+        <div className="budget-modal-tabs" role="tablist">
+          <button role="tab" aria-selected={tab === "approval"} className={tab === "approval" ? "selected" : ""} onClick={() => setTab("approval")}>
+            계약·사업추진 {approvals.length}
+          </button>
+          <button role="tab" aria-selected={tab === "tx"} className={tab === "tx" ? "selected" : ""} onClick={() => setTab("tx")}>
+            세부 지출 내역 {transactions.length}
+          </button>
+        </div>
+
+        {tab === "approval" ? (
+          approvals.length ? (
+            <ul className="budget-modal-approvals">
+              {approvals.map((approval) => (
+                <li key={approval.url}>
+                  <span className="budget-approval-cat">{approval.category}</span>
+                  <a href={approval.url} target="_blank" rel="noreferrer">{approval.name}</a>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="budget-modal-empty">연결된 품의가 없습니다.</p>
+        ) : (
+          transactions.length ? (
+            <ul className="budget-modal-tx">
+              {transactions.map((tx, index) => (
+                <li key={`${tx.date}-${index}`}>
+                  <small>{tx.date}</small>
+                  <span>{tx.desc || tx.name}</span>
+                  <em>{fullWon(tx.amount)}원</em>
+                  <small className="budget-modal-owner">{tx.owner}</small>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="budget-modal-empty">집행 내역이 없습니다.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------- screen */
+
+const PAGE_SIZE = 25;
+type SortKey = "budget" | "used" | "remain" | "rate";
+type FilterKey = "all" | RiskKey | "Opex" | "Capex";
+
+const filterChips: Array<{ key: FilterKey; label: string }> = [
+  { key: "all", label: "전체" },
+  { key: "over", label: "초과" },
+  { key: "watch", label: "주의" },
+  { key: "ok", label: "양호" },
+  { key: "spare", label: "여유" },
+  { key: "Opex", label: "Opex" },
+  { key: "Capex", label: "Capex" },
+];
+
+export function BudgetAdminScreen() {
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<FilterKey>("all");
+  const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({ key: "budget", desc: true });
+  const [page, setPage] = useState(1);
+  const [detail, setDetail] = useState<BudgetLine | null>(null);
+  const [topScope, setTopScope] = useState<"over" | "watch" | "both">("over");
+
+  const rows = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    let list = budgetLines.filter((line) => {
+      if (needle && !`${line.code} ${line.name} ${line.acct}`.toLowerCase().includes(needle)) return false;
+      if (filter === "all") return true;
+      if (filter === "Opex" || filter === "Capex") return line.type === filter;
+      return riskOf(line) === filter;
+    });
+    const value = (line: BudgetLine) => {
+      if (sort.key === "budget") return line.budget;
+      if (sort.key === "used") return line.used;
+      if (sort.key === "remain") return line.remain;
+      const rate = rateOf(line);
+      return Number.isFinite(rate) ? rate : Number.MAX_SAFE_INTEGER;
+    };
+    list = [...list].sort((a, b) => (sort.desc ? value(b) - value(a) : value(a) - value(b)));
+    return list;
+  }, [query, filter, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const current = Math.min(page, totalPages);
+  const pageRows = rows.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const shownBudget = rows.reduce((sum, line) => sum + line.budget, 0);
+  const shownUsed = rows.reduce((sum, line) => sum + line.used, 0);
+
+  const topList = useMemo(() => {
+    const pool = topScope === "over" ? overLines : topScope === "watch" ? watchLines : [...overLines, ...watchLines];
+    return pool.slice(0, 6);
+  }, [topScope]);
+
+  const topAccounts = byAccount.slice(0, 8);
+  const accountPeak = Math.max(...topAccounts.map((row) => row.budget), 1);
+
+  const changeSort = (key: SortKey) => {
+    setPage(1);
+    setSort((prev) => (prev.key === key ? { key, desc: !prev.desc } : { key, desc: true }));
+  };
+  const sortMark = (key: SortKey) => (sort.key === key ? (sort.desc ? "↓" : "↑") : "↕");
+
+  return (
+    <main className="screen budget-dash">
+      <section className="budget-dash-head">
         <div>
           <h1>비용·계약 관리</h1>
-          <p>예산관리 대시보드 {budgetAsOf} 스냅샷입니다. 회계 원장은 ERP에 두고, 이 화면은 집행 페이스와 조치 대상을 봅니다.</p>
+          <p>{budgetAsOf.slice(0, 4)} · 예산코드 {budgetLines.length}개 항목 전체 현황</p>
         </div>
-        <p className="budget-asof"><span>기준일</span><b>{budgetAsOf}</b></p>
+        <span className="budget-asof-pill">기준 {budgetAsOf.replace(/-/g, ".")}</span>
       </section>
 
       <section className="budget-source-note">
         <b>실제 데이터</b>
-        <p>{budgetClosedMonths}개월 마감 · 예산항목 {budgetLines.length}건 · 거래 {budgetTransactions.length}건. 월별 내보내기를 다시 넣으면 그대로 갱신됩니다.</p>
+        <p>예산관리 대시보드 내보내기 · {budgetClosedMonths}개월 마감 · 거래 {budgetTransactions.length}건. 운영에서는 세부내역 시트를 직접 읽습니다.</p>
       </section>
 
-      <div className="segment-control budget-tab-control">
-        <button type="button" className={tab === "budget" ? "selected" : ""} onClick={() => setTab("budget")}>예산·집행</button>
-        <button type="button" className={tab === "approval" ? "selected" : ""} onClick={() => setTab("approval")}>계약·품의 {contractReviewCount}</button>
+      <section className="budget-stat-row">
+        <article className="budget-stat tone-navy">
+          <small>총 예산</small><b>{billion(totalBudget)}</b><em>{budgetLines.length}개 항목</em>
+        </article>
+        <article className="budget-stat tone-teal">
+          <small>총 사용금액</small><b>{billion(totalUsed)}</b><em>사용율 {overallRate.toFixed(1)}% · 경과 {elapsedRate}%</em>
+        </article>
+        <article className="budget-stat tone-green">
+          <small>잔여예산</small><b>{billion(totalRemain)}</b><em>전체의 {(100 - overallRate).toFixed(1)}% 미사용</em>
+        </article>
+        <article className="budget-stat tone-red">
+          <small>예산 초과 항목</small><b>{riskCounts.over}건</b><em>초과 합계 {won(overLines.reduce((sum, line) => sum + line.over, 0))}</em>
+        </article>
+        <article className="budget-stat tone-amber">
+          <small>주의 항목 (80~100%)</small><b>{riskCounts.watch}건</b><em>사용율 모니터링 권고</em>
+        </article>
+        <article className="budget-stat tone-gray">
+          <small>미집행 항목 (0%)</small><b>{unusedCount}건</b><em>사용액 미발생</em>
+        </article>
+      </section>
+
+      <div className="budget-grid-3">
+        <section className="budget-card">
+          <div className="budget-card-head"><h2>유형별 예산 현황</h2></div>
+          <div className="budget-type-row">
+            <Donut
+              segments={byType.map((row) => ({ key: row.type, value: row.budget, className: `budget-donut-${row.type.toLowerCase()}` }))}
+              centerValue={`${overallRate.toFixed(1)}%`}
+              centerLabel="전체 사용율"
+            />
+            <div className="budget-type-blocks">
+              <ul className="budget-donut-legend">
+                {byType.map((row) => (
+                  <li key={row.type}><i className={`budget-donut-${row.type.toLowerCase()}`} />{row.type}</li>
+                ))}
+              </ul>
+              {byType.map((row) => (
+                <div className="budget-type-block" key={row.type}>
+                  <div className="budget-type-block-top">
+                    <span><em className={`budget-type-chip type-${row.type.toLowerCase()}`}>{row.type}</em>{row.count}건</span>
+                    <b>{rateOf(row).toFixed(1)}%</b>
+                  </div>
+                  <RateBar line={row} />
+                  <div className="budget-type-block-foot"><small>예산 {billion(row.budget)}</small><small>사용 {billion(row.used)}</small></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="budget-card">
+          <div className="budget-card-head"><h2>위험도 분포</h2><span>{budgetLines.length}건</span></div>
+          <div className="budget-risk-bar">
+            {riskOrder.map((key) => (
+              <i
+                key={key}
+                className={`risk-${key}`}
+                style={{ width: `${(riskCounts[key] / budgetLines.length) * 100}%` }}
+                title={`${riskMeta[key].label} ${riskCounts[key]}건`}
+              />
+            ))}
+          </div>
+          <ul className="budget-risk-legend">
+            {riskOrder.map((key) => (
+              <li key={key}>
+                <i className={`risk-${key}`} />
+                <span>{riskMeta[key].label} ({riskMeta[key].range})</span>
+                <em className={`risk-${key}`}>{riskCounts[key]}건</em>
+              </li>
+            ))}
+          </ul>
+          <div className="budget-card-head budget-card-head-sub"><h2>전체 예산 사용율</h2></div>
+          <Gauge rate={overallRate} />
+          <p className="budget-note">
+            연말 착지 전망 <b>{billion(forecast)}</b> · {forecastVariance >= 0 ? "예산 내" : "예산 초과"} {won(Math.abs(forecastVariance))}.
+            마감 {budgetClosedMonths}개월 균등 환산이며 계절성은 반영하지 않습니다.
+          </p>
+        </section>
+
+        <section className="budget-card">
+          <div className="budget-card-head"><h2>계정 카테고리별 사용 현황</h2></div>
+          <ul className="budget-acct-list">
+            {byAccount.slice(0, 10).map((row) => (
+              <li key={row.acct}>
+                <span className="budget-acct-name" title={row.acct}>{row.acct}</span>
+                <span className="budget-acct-bar">
+                  <RateBar line={row} />
+                  <span className="budget-acct-ends"><small>{won(row.used)}</small><small>{won(row.budget)}</small></span>
+                </span>
+                <em className={`risk-${riskOf(row)}`}>{rateOf(row).toFixed(1)}%</em>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
 
-      {tab === "approval" ? (
-        <>
-          <section className="budget-section-heading"><div><h2>품의·계약이 연결된 예산코드</h2></div><span>{contractReviewCount}개 코드</span></section>
-          <div className="budget-approval-list">
-            {approvalCodes.map(([code, approvals]) => {
-              const line = lineByCode.get(code);
-              return (
-                <article key={code}>
-                  <div className="budget-approval-top">
-                    <span><b>{line ? line.name : code}</b><small>{code}{line ? ` · ${line.acct}` : ""}</small></span>
-                    {line && <em>{won(line.used)} / {won(line.budget)}</em>}
-                  </div>
-                  <ul>
-                    {approvals.map((approval) => (
-                      <li key={approval.url}>
-                        <span className="budget-approval-cat">{approval.category}</span>
-                        <a href={approval.url} target="_blank" rel="noreferrer">{approval.name}</a>
-                      </li>
-                    ))}
-                  </ul>
-                </article>
-              );
-            })}
-          </div>
-          <p className="budget-poc-note">품의 링크는 사내망에서만 열립니다.</p>
-        </>
-      ) : (
-        <>
-          <section className="budget-kpi-grid">
-            <article><span>총 예산</span><b>{billion(totals.budget)}<small>원</small></b><small>편성 + 증액</small></article>
-            <article><span>집행</span><b>{billion(totals.used)}<small>원</small></b><small>{usedRate}% 사용</small></article>
-            <article className="available"><span>잔여</span><b>{billion(totalRemain)}<small>원</small></b><small>{100 - usedRate}% 남음</small></article>
-            <article className={forecastVariance >= 0 ? "available" : "attention"}>
-              <span>연말 착지 전망</span>
-              <b>{billion(forecast)}<small>원</small></b>
-              <small>{forecastVariance >= 0 ? "예산 내" : "예산 초과"} {won(Math.abs(forecastVariance))}</small>
-            </article>
-          </section>
-
-          <section className="budget-pacing-card">
-            <div className="budget-pacing-head">
-              <span><small>연간 경과 {elapsedRate}% 대비</small><b>집행률 {usedRate}%</b></span>
-              <PaceBadge rate={usedRate} />
-            </div>
-            <UsageBar rate={usedRate} label="전체" size="lg" />
-            <div className="budget-bar-legend">
-              <span className="actual">집행 {usedRate}% · {won(totals.used)}</span>
-              <span className="remain">잔여 {100 - usedRate}% · {won(totalRemain)}</span>
-              <span className="elapsed">연간 경과 {elapsedRate}% ({budgetClosedMonths}개월 마감)</span>
-            </div>
-            <p className="budget-forecast-basis">착지 전망은 마감 {budgetClosedMonths}개월 집행액의 균등 환산값입니다. 계절성은 반영하지 않습니다.</p>
-          </section>
-
-          <section className="budget-section-heading"><div><h2>월별 집행 추이</h2></div><span>월 평균 예산 {won(monthlyPlan)}</span></section>
-          <section className="budget-trend-card">
-            <div className="budget-trend" role="img" aria-label={`월별 집행액. ${budgetMonthly.map((month) => `${Number(month.month.slice(5))}월 ${won(month.amount)}`).join(", ")}`}>
-              <span className="budget-trend-plan" style={{ bottom: `${Math.min((monthlyPlan / monthlyPeak) * 100, 100)}%` }}><em>월 평균 예산</em></span>
-              {budgetMonthly.map((month) => (
-                <div className="budget-trend-col" key={month.month} title={`${month.month} ${won(month.amount)}`}>
-                  <b>{billion(month.amount)}</b>
-                  <div className="budget-trend-bar" style={{ height: `${(month.amount / monthlyPeak) * 100}%` }} />
-                  <small>{Number(month.month.slice(5))}월</small>
+      <div className="budget-grid-2">
+        <section className="budget-card">
+          <div className="budget-card-head"><h2>예산 규모 TOP 8 — 계정별 비교</h2></div>
+          <ul className="budget-top-legend">
+            <li><i className="budget-col-plan" />총예산</li>
+            <li><i className="budget-col-used" />사용금액</li>
+          </ul>
+          <div className="budget-top-chart">
+            {topAccounts.map((row) => (
+              <div className="budget-top-col" key={row.acct} title={`${row.acct} · 예산 ${won(row.budget)} · 사용 ${won(row.used)}`}>
+                <div className="budget-top-pair">
+                  <i className="budget-col-plan" style={{ height: `${(row.budget / accountPeak) * 100}%` }} />
+                  <i className="budget-col-used" style={{ height: `${(row.used / accountPeak) * 100}%` }} />
                 </div>
+                <small>{row.acct}</small>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="budget-card">
+          <div className="budget-card-head">
+            <h2>초과·주의 TOP 항목</h2>
+            <select value={topScope} onChange={(event) => setTopScope(event.target.value as typeof topScope)} aria-label="표시 범위">
+              <option value="over">초과 항목만</option>
+              <option value="watch">주의 항목만</option>
+              <option value="both">초과 + 주의</option>
+            </select>
+          </div>
+          <ol className="budget-top-list">
+            {topList.map((line, index) => (
+              <li key={line.code} className={`risk-${riskOf(line)}`}>
+                <span className="budget-top-rank">{String(index + 1).padStart(2, "0")}</span>
+                <button type="button" title={line.name} onClick={() => setDetail(line)}>{line.name}</button>
+                <small>{line.code}</small>
+                <RateBar line={line} showMarker={false} />
+                <em className={`risk-${riskOf(line)}`}>{showRate(rateOf(line))}</em>
+              </li>
+            ))}
+          </ol>
+          {topList.length === 0 && <p className="budget-modal-empty">해당 항목이 없습니다.</p>}
+        </section>
+      </div>
+
+      <section className="budget-card">
+        <div className="budget-card-head">
+          <h2>월별 집행 추이</h2>
+          <span>월 평균 예산 {won(monthlyPlan)}</span>
+        </div>
+        <div className="budget-trend" role="img" aria-label={`월별 집행액. ${budgetMonthly.map((month) => `${Number(month.month.slice(5))}월 ${won(month.amount)}`).join(", ")}`}>
+          <span className="budget-trend-plan" style={{ bottom: `${Math.min((monthlyPlan / monthlyPeak) * 100, 100)}%` }}><em>월 평균 예산</em></span>
+          {budgetMonthly.map((month) => (
+            <div className="budget-trend-col" key={month.month} title={`${month.month} ${won(month.amount)}`}>
+              <b>{billion(month.amount)}</b>
+              <div className="budget-trend-bar" style={{ height: `${(month.amount / monthlyPeak) * 100}%` }} />
+              <small>{Number(month.month.slice(5))}월</small>
+            </div>
+          ))}
+        </div>
+        <p className="budget-note">원본 대시보드에는 시간축이 없어 새로 넣었습니다. 1~2월이 거의 0이고 3월에 몰린 형태라, 균등 환산 전망보다 실제 착지가 높을 수 있습니다.</p>
+      </section>
+
+      <section className="budget-card budget-table-card">
+        <div className="budget-card-head budget-table-head">
+          <h2>전체 예산코드 항목 상세<small>행을 누르면 계약·지출 상세가 열립니다</small></h2>
+          <div className="budget-table-controls">
+            <span className="budget-search"><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="코드·항목명·계정 검색" aria-label="예산코드 검색" /></span>
+            <div className="budget-chip-row">
+              {filterChips.map((chip) => (
+                <button key={chip.key} type="button" className={filter === chip.key ? "selected" : ""} onClick={() => { setFilter(chip.key); setPage(1); }}>{chip.label}</button>
               ))}
             </div>
-            <p className="budget-forecast-basis">1~2월 집행이 낮고 3월에 몰린 형태입니다. 균등 환산 전망은 이 계절성을 반영하지 않으므로 실제 착지는 전망보다 높을 수 있습니다.</p>
-          </section>
-
-          <section className="budget-section-heading"><div><h2>조치가 필요한 항목</h2></div><span>초과 {overBudget.length} · 주의 {watchList.length} · 미집행 {unusedList.length}</span></section>
-          <div className="budget-risk-grid">
-            <article className="budget-risk-card critical">
-              <div className="budget-risk-top"><span><PaceGlyph tone="critical" />예산 초과</span><b>{overBudget.length}건</b></div>
-              <ul>
-                {overBudget.slice(0, 4).map((line) => (
-                  <li key={line.code}><span>{line.name}</span><em>+{won(line.over)}<small>{Math.round(line.pct)}%</small></em></li>
-                ))}
-              </ul>
-              <small>초과 금액순입니다. 비율순으로 두면 예산 0원 항목이 위로 올라와 실제 손실 크기를 가립니다.</small>
-            </article>
-
-            <article className="budget-risk-card warning">
-              <div className="budget-risk-top"><span><PaceGlyph tone="warning" />주의 80~100%</span><b>{watchList.length}건</b></div>
-              <ul>
-                {watchList.slice(0, 4).map((line) => (
-                  <li key={line.code}><span>{line.name}</span><em>{percent(line.used, line.budget)}%<small>{won(line.remain)} 남음</small></em></li>
-                ))}
-              </ul>
-              <small>연말까지 잔액으로 버틸 수 있는지 확인이 필요한 항목입니다.</small>
-            </article>
-
-            <article className="budget-risk-card info">
-              <div className="budget-risk-top"><span><PaceGlyph tone="info" />미집행 0%</span><b>{unusedList.length}건</b></div>
-              <ul>
-                {unusedList.slice(0, 4).map((line) => (
-                  <li key={line.code}><span>{line.name}</span><em>{won(line.budget)}</em></li>
-                ))}
-              </ul>
-              <small>반기가 지나도 집행이 없는 예산입니다. 재배정 검토 대상입니다.</small>
-            </article>
           </div>
+        </div>
 
-          <section className="budget-section-heading"><div><h2>유형별 집행</h2></div></section>
-          <div className="budget-type-grid">
-            {byType.map((row) => (
-              <article key={row.type}>
-                <div className="budget-type-top">
-                  <span><b>{row.type}</b><small>{row.count}개 항목</small></span>
-                  <PaceBadge rate={percent(row.used, row.budget)} />
-                </div>
-                <UsageBar rate={percent(row.used, row.budget)} label={row.type} />
-                <dl>
-                  <div><dt>예산</dt><dd>{won(row.budget)}</dd></div>
-                  <div><dt>집행</dt><dd>{won(row.used)}</dd></div>
-                  <div><dt>잔여</dt><dd>{won(row.budget - row.used)}</dd></div>
-                </dl>
-              </article>
+        <div className="budget-table">
+          <div className="budget-table-row budget-table-header">
+            <span>코드</span>
+            <span>항목명</span>
+            <span>유형</span>
+            <span>계정</span>
+            <button type="button" onClick={() => changeSort("budget")}>예산 {sortMark("budget")}</button>
+            <button type="button" onClick={() => changeSort("used")}>사용금액 {sortMark("used")}</button>
+            <button type="button" onClick={() => changeSort("remain")}>잔여예산 {sortMark("remain")}</button>
+            <button type="button" onClick={() => changeSort("rate")}>사용율 {sortMark("rate")}</button>
+            <span>상태</span>
+          </div>
+          {pageRows.map((line) => {
+            const approvals = budgetApprovals[line.code]?.length ?? 0;
+            return (
+              <div
+                className={`budget-table-row budget-table-body risk-row-${riskOf(line)}`}
+                key={line.code}
+                role="button"
+                tabIndex={0}
+                onClick={() => setDetail(line)}
+                onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setDetail(line); } }}
+              >
+                <span className="budget-cell-code">{line.code}</span>
+                <span className="budget-cell-name" title={line.name}>
+                  {line.name}
+                  {approvals > 0 && <em className="budget-cell-clip">{approvals}건</em>}
+                </span>
+                <span><em className={`budget-type-chip type-${line.type.toLowerCase()}`}>{line.type}</em></span>
+                <span className="budget-cell-acct" title={line.acct}>{line.acct}</span>
+                <span className="budget-cell-num">{fullWon(line.budget)}</span>
+                <span className="budget-cell-num">{fullWon(line.used)}</span>
+                <span className={`budget-cell-num ${line.remain < 0 ? "over" : "left"}`}>{fullWon(line.remain)}</span>
+                <span className="budget-cell-rate"><RateBar line={line} showMarker={false} /><em className={`risk-${riskOf(line)}`}>{showRate(rateOf(line))}</em></span>
+                <span><RiskBadge line={line} /></span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="budget-table-summary">
+          <span>필터 결과 <b>{rows.length}건</b></span>
+          <span>예산 합계 <b>{fullWon(shownBudget)}</b></span>
+          <span>사용 합계 <b>{fullWon(shownUsed)}</b></span>
+          <span>잔여 합계 <b>{fullWon(shownBudget - shownUsed)}</b></span>
+          <span>평균 사용율 <b>{shownBudget ? ((shownUsed / shownBudget) * 100).toFixed(1) : "0.0"}%</b></span>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="budget-pagination">
+            <button type="button" onClick={() => setPage(Math.max(1, current - 1))} disabled={current === 1} aria-label="이전 페이지">‹</button>
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map((number) => (
+              <button key={number} type="button" className={number === current ? "selected" : ""} onClick={() => setPage(number)}>{number}</button>
             ))}
+            <button type="button" onClick={() => setPage(Math.min(totalPages, current + 1))} disabled={current === totalPages} aria-label="다음 페이지">›</button>
+            <small>{(current - 1) * PAGE_SIZE + 1}–{Math.min(current * PAGE_SIZE, rows.length)} / {rows.length}건</small>
           </div>
+        )}
+      </section>
 
-          <section className="budget-section-heading">
-            <div><h2>계정별 집행 현황</h2></div>
-            <div className="segment-control budget-account-filter">
-              {(["all", "Opex", "Capex"] as const).map((value) => (
-                <button key={value} type="button" className={scope === value ? "selected" : ""} onClick={() => setScope(value)}>
-                  {value === "all" ? "전체" : value}
-                </button>
-              ))}
-            </div>
-          </section>
-          <div className="budget-account-table">
-            <div className="budget-account-row budget-account-head">
-              <span>계정</span><span>예산</span><span>집행</span><span>집행률</span><span>페이스</span>
-            </div>
-            {accounts.slice(0, 12).map((row) => {
-              const rate = percent(row.used, row.budget);
-              return (
-                <div className="budget-account-row" key={row.acct}>
-                  <span title={row.acct}><b>{row.acct}</b><small>{row.count}건</small></span>
-                  <span>{won(row.budget)}</span>
-                  <span>{won(row.used)}</span>
-                  <span className="budget-account-rate"><UsageBar rate={rate} label={row.acct} /><small>{rate}%</small></span>
-                  <span><PaceBadge rate={rate} /></span>
-                </div>
-              );
-            })}
-          </div>
-
-          <section className="budget-section-heading"><div><h2>담당자별 집행</h2></div><span>거래 {budgetTransactions.length}건</span></section>
-          <div className="budget-owner-grid">
-            {byOwner.map((row) => (
-              <article key={row.owner}>
-                <div className="budget-owner-top"><b>{row.owner}</b><em>{row.count}건</em></div>
-                <div className="budget-usage-bar budget-owner-bar"><span style={{ width: `${percent(row.amount, byOwner[0].amount)}%` }} /></div>
-                <small>{won(row.amount)}</small>
-              </article>
-            ))}
-          </div>
-
-          <section className="budget-section-heading"><div><h2>최근 집행 내역</h2></div><span>최근 {recentTransactions.length}건</span></section>
-          <div className="budget-tx-list">
-            {recentTransactions.map((tx, index) => (
-              <article key={`${tx.code}-${tx.date}-${index}`}>
-                <div className="budget-tx-top"><small>{tx.date}</small><em>{won(tx.amount)}</em></div>
-                <b>{tx.desc || tx.name}</b>
-                <small>{tx.name} · {tx.owner}</small>
-              </article>
-            ))}
-          </div>
-
-          <section className="budget-integration-card">
-            <div>
-              <b>운영 전환 시 연결 지점</b>
-              <p>지금은 대시보드 내보내기 스냅샷을 읽습니다. 운영에서는 세부내역 시트를 직접 읽어 같은 화면을 갱신하고, 예산원장·전표는 ERP를 기준으로 둡니다.</p>
-            </div>
-            <ul>
-              <li><span>예산항목·집행액</span><em>세부내역 시트</em></li>
-              <li><span>예산원장·전표</span><em>ERP</em></li>
-              <li><span>품의·계약</span><em>사내 결재</em></li>
-            </ul>
-          </section>
-        </>
-      )}
+      {detail && <DetailModal line={detail} onClose={() => setDetail(null)} />}
     </main>
   );
 }

@@ -6668,6 +6668,88 @@ span {
   }
 }
 
+/*
+ * Desktop density pass. Capping the work area at 1180px and stacking every
+ * card full-width left large gutters and a half-empty row for each card, so
+ * the home screen becomes a two-column dashboard and the cap widens.
+ */
+@media (min-width: 1024px) {
+  .screen {
+    max-width: 1440px;
+    padding: 24px 40px 56px;
+  }
+
+  .home-screen {
+    display: grid;
+    align-content: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 20px;
+    row-gap: 22px;
+  }
+
+  /* rows that stay full width */
+  .home-screen > .profile-hero,
+  .home-screen > .quick-action-section,
+  .home-screen > .active-summary,
+  .home-screen > .section-block:not(.quick-action-section):not(.recent-section) {
+    grid-column: 1 / -1;
+  }
+
+  /* paired rows: today's bookings next to the task finder, recent requests
+     next to the service notice */
+  .home-screen > .today-reservation-card,
+  .home-screen > .recent-section {
+    grid-column: 1;
+  }
+
+  .home-screen > .smart-intake,
+  .home-screen > .notice-card {
+    grid-column: 2;
+  }
+
+  .home-screen > .notice-card {
+    align-self: start;
+  }
+
+  /* the grid owns the spacing now */
+  .home-screen > .profile-hero,
+  .home-screen > .today-reservation-card,
+  .home-screen > .smart-intake,
+  .home-screen > .section-block,
+  .home-screen > .active-summary,
+  .home-screen > .notice-card {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .home-screen > .profile-hero {
+    padding: 4px 2px 0;
+  }
+
+  /* size to content instead of matching the neighbour's height, which would
+     leave a void inside the card */
+  .home-screen > .smart-intake {
+    align-self: start;
+  }
+}
+
+/* Very wide monitors: spread the long lists further rather than growing
+   the cards. */
+@media (min-width: 1600px) {
+  .exception-list,
+  .queue-case-list,
+  .oa-case-list,
+  .request-card-list,
+  .ops-request-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .room-list,
+  .budget-category-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;

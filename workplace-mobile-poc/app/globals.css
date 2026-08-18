@@ -1183,6 +1183,7 @@ span {
  * admin destinations all stay hidden until the desktop breakpoint.
  */
 .bottom-nav-desktop-only,
+.bottom-nav .nav-panel-head,
 .bottom-nav .nav-brand,
 .bottom-nav .nav-group-label,
 .bottom-nav .nav-panel-title,
@@ -6872,23 +6873,62 @@ span {
     width: 84px;
     flex-direction: column;
     align-items: stretch;
-    gap: 4px;
-    padding: 22px 8px 16px;
+    gap: var(--nav-row-gap);
+    padding: 20px 8px 16px;
     border-right: 1px solid var(--line);
     background: #fbfcfd;
   }
 
-  .nav-rail-brand {
-    align-self: center;
-    margin-bottom: 18px;
+  /*
+   * Both columns open with a header of exactly --nav-head, then rows of
+   * --nav-row on a --nav-row-gap rhythm. That is what makes the rail icons sit
+   * at the same heights as the panel icons rather than drifting apart — the two
+   * lists start on the same line and step down together.
+   */
+  .nav-rail-head,
+  .nav-panel-head {
+    display: flex;
+    height: var(--nav-head);
+    flex: none;
+  }
+
+  .nav-rail-head {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-panel-head {
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .nav-rail-collapse {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: #fff;
+    color: var(--muted);
+  }
+
+  .nav-rail-collapse:hover {
+    background: #f1f4f7;
+    color: var(--text);
   }
 
   .nav-rail-item {
     display: flex;
+    height: var(--nav-row);
+    flex: none;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
-    padding: 10px 4px;
+    justify-content: flex-start;
+    gap: 3px;
+    /* top pad = half the leftover row height, so the icon's centre is the row's
+       centre — the same line the panel centres its own icon on */
+    padding: calc((var(--nav-row) - var(--nav-icon)) / 2) 4px 0;
     border-radius: 14px;
     background: transparent;
     color: var(--muted);
@@ -6898,6 +6938,14 @@ span {
     font-size: var(--fs-11);
     font-weight: 700;
     letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  /* Without this the icon is a shrinkable flex item: the label's line box pushed
+     the row over its height and the glyph was squeezed to 18.7px, which is what
+     put it a pixel off the panel's icon line. */
+  .nav-rail-item svg {
+    flex: none;
   }
 
   .nav-rail-item:hover {
@@ -6922,7 +6970,7 @@ span {
     width: 232px;
     height: 100%;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--nav-row-gap);
     padding: 20px 14px 16px;
     overflow-y: auto;
     border-top: 0;
@@ -6934,11 +6982,25 @@ span {
 
   .bottom-nav .nav-panel-title {
     display: block;
-    margin: 0 10px 10px;
+    margin: 0 10px;
     color: var(--text);
     font-size: 15px;
     font-weight: 780;
     letter-spacing: -0.02em;
+  }
+
+  /* The list is the point of the second column; collapsing gives the width back
+     to the work area. The rail stays, so nothing becomes unreachable. */
+  .mobile-app-shell[data-rail-collapsed="true"] {
+    margin-left: 84px;
+  }
+
+  .mobile-app-shell[data-rail-collapsed="true"] .bottom-nav {
+    display: none;
+  }
+
+  .mobile-app-shell[data-rail-collapsed="true"] .nav-rail-collapse svg {
+    transform: rotate(180deg);
   }
 
   /* The panel renders every section; the closed two are hidden here rather than
@@ -6957,8 +7019,8 @@ span {
     display: flex;
   }
 
-  /* grouped rail: brand, section labels, item subtitles and the profile card
-     only exist at this size */
+  /* the header block and the item subtitles only exist at this size */
+  .bottom-nav .nav-panel-head,
   .bottom-nav .nav-brand,
   .bottom-nav .nav-desk,
   .bottom-nav button.nav-item-desktop {
@@ -7030,13 +7092,13 @@ span {
   .bottom-nav button[data-nav] { order: 0; }
 
   .bottom-nav button {
-    height: auto;
-    min-height: 46px;
+    height: var(--nav-row);
+    min-height: 0;
     flex: none;
     flex-direction: row;
     justify-content: flex-start;
     gap: 11px;
-    padding: 8px 10px;
+    padding: 0 10px;
     text-align: left;
   }
 
@@ -7370,6 +7432,17 @@ span {
     --fs-9: 12.5px;
     --fs-10: 13px;
     --fs-11: 13px;
+
+    /*
+     * Shared vertical rhythm for the two navigation columns. --nav-row is tall
+     * enough that a rail item can centre its icon on the row's midline and still
+     * fit its label underneath, which is what lets the icons in both columns
+     * land on the same lines.
+     */
+    --nav-head: 74px;
+    --nav-row: 62px;
+    --nav-row-gap: 2px;
+    --nav-icon: 22px;
   }
 
   html,
@@ -7764,12 +7837,12 @@ span {
  * the team line fold away until the row has room again.
  */
 @media (min-width: 1024px) and (max-width: 1199px) {
-  .app-identity-status,
-  .app-identity-who small {
+  .mobile-app-shell[data-rail-collapsed="false"] .app-identity-status,
+  .mobile-app-shell[data-rail-collapsed="false"] .app-identity-who small {
     display: none;
   }
 
-  .app-identity {
+  .mobile-app-shell[data-rail-collapsed="false"] .app-identity {
     gap: 10px;
   }
 }
@@ -7780,14 +7853,14 @@ span {
  * notice clipped its own subtitle. One column until there is room for two.
  */
 @media (min-width: 1024px) and (max-width: 1199px) {
-  .home-screen {
+  .mobile-app-shell[data-rail-collapsed="false"] .home-screen {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .home-screen > .today-reservation-card,
-  .home-screen > .recent-section,
-  .home-screen > .smart-intake,
-  .home-screen > .notice-card {
+  .mobile-app-shell[data-rail-collapsed="false"] .home-screen > .today-reservation-card,
+  .mobile-app-shell[data-rail-collapsed="false"] .home-screen > .recent-section,
+  .mobile-app-shell[data-rail-collapsed="false"] .home-screen > .smart-intake,
+  .mobile-app-shell[data-rail-collapsed="false"] .home-screen > .notice-card {
     grid-column: 1;
   }
 }

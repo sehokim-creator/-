@@ -114,7 +114,8 @@ type IconName =
   | "user"
   | "pin"
   | "alert"
-  | "sparkle";
+  | "sparkle"
+  | "collapse";
 
 type ServiceDefinition = {
   id: string;
@@ -868,6 +869,9 @@ function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
       break;
     case "alert":
       content = <><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5M12 17h.01"/></>;
+      break;
+    case "collapse":
+      content = <><path d="m11 7-5 5 5 5"/><path d="m18 7-5 5 5 5"/></>;
       break;
     default:
       content = <><path d="m12 2 1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6L12 2Z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></>;
@@ -1869,28 +1873,47 @@ const navGroups: Array<{ id: NavSection; label: string; railLabel: string; icon:
  * sections. Filtering in JS would have to know the viewport, and the mobile tab
  * bar needs all five of its items regardless of which section is open.
  */
-function BottomNavigation({ active, onChange, desktopOnly, openSection, onOpenSection }: {
+function BottomNavigation({ active, onChange, desktopOnly, openSection, onOpenSection, collapsed, onToggleCollapsed }: {
   active: Tab;
   onChange: (tab: Tab) => void;
   desktopOnly?: boolean;
   openSection: NavSection;
   onOpenSection: (section: NavSection) => void;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
 }) {
   const section = navGroups.find((group) => group.id === openSection) ?? navGroups[0];
   return (
     <>
       <aside className="nav-rail" aria-label="메뉴 구분">
-        <span className="nav-rail-brand brand-dot" aria-hidden="true" />
+        {/* Both columns open with one fixed-height header block, so the two item
+            lists start at the same y and the icons line up across the columns. */}
+        <div className="nav-rail-head">
+          <button
+            className="nav-rail-collapse"
+            type="button"
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? "메뉴 목록 펼치기" : "메뉴 목록 접기"}
+            title={collapsed ? "메뉴 목록 펼치기" : "메뉴 목록 접기"}
+            onClick={onToggleCollapsed}
+          >
+            <Icon name="collapse" size={18} />
+          </button>
+        </div>
         {navGroups.map((group) => (
           <button
             className={`nav-rail-item ${group.id === openSection ? "active" : ""}`}
             data-rail={group.id}
             key={group.id}
             type="button"
-            aria-expanded={group.id === openSection}
-            onClick={() => onOpenSection(group.id)}
+            aria-expanded={group.id === openSection && !collapsed}
+            onClick={() => {
+              onOpenSection(group.id);
+              // Picking a section with the list collapsed means you want the list.
+              if (collapsed) onToggleCollapsed();
+            }}
           >
-            <Icon name={group.icon} size={21} />
+            <Icon name={group.icon} size={22} />
             <span>{group.railLabel}</span>
           </button>
         ))}
@@ -1901,10 +1924,13 @@ function BottomNavigation({ active, onChange, desktopOnly, openSection, onOpenSe
         data-open-section={openSection}
         aria-label="주요 메뉴"
       >
-        <div className="nav-brand">
-          <span><b>WORKPLACE</b><small>Employee Center</small></span>
+        <div className="nav-panel-head">
+          <div className="nav-brand">
+            <span className="brand-dot" aria-hidden="true" />
+            <span><b>WORKPLACE</b><small>Employee Center</small></span>
+          </div>
+          <p className="nav-panel-title">{section.label}</p>
         </div>
-        <p className="nav-panel-title">{section.label}</p>
 
         {navGroups.map((group) => (
           <Fragment key={group.id}>
@@ -1975,6 +2001,7 @@ export default function Home() {
    * without being navigated out of the one you are on.
    */
   const [openSection, setOpenSection] = useState<NavSection>("mine");
+  const [navCollapsed, setNavCollapsed] = useState(false);
   const [requests, setRequests] = useState<RequestItem[]>(initialRequests);
   const [seats, setSeats] = useState<SeatRecord[]>(() => createInitialSeats());
   const [seatPolicies, setSeatPolicies] = useState<SeatPolicyRecord[]>(() => createInitialSeatPolicies());
@@ -2204,7 +2231,7 @@ export default function Home() {
   return (
     <IdentityContext.Provider value={identity}>
     <div className="page-stage">
-      <div className="mobile-app-shell">
+      <div className="mobile-app-shell" data-rail-collapsed={navCollapsed ? "true" : "false"}>
         {selectedRequest ? (
           <RequestDetailScreen request={requests.find((item) => item.id === selectedRequest.id) || selectedRequest} onBack={() => setSelectedRequest(null)} />
         ) : activeTab === "home" ? (
@@ -2241,6 +2268,8 @@ export default function Home() {
           onChange={(tab) => tab === "request" ? openRequest() : changeTab(tab)}
           openSection={openSection}
           onOpenSection={setOpenSection}
+          collapsed={navCollapsed}
+          onToggleCollapsed={() => setNavCollapsed((value) => !value)}
         />
         {toast && <div className="toast" role="status"><span><Icon name="check" size={16} /></span>{toast}</div>}
       </div>

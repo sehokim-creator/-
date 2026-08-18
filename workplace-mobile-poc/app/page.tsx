@@ -122,6 +122,8 @@ type ServiceDefinition = {
   detailLocationPlaceholder: string;
 };
 
+const EMPLOYEE = { name: "김세호", department: "Product", status: "근무중" };
+
 const OTHER_OPTION = "기타 (직접 입력)";
 const deviceOptions = ["Windows 노트북", "MacBook Air", "Windows 데스크탑", "모니터", "iPad·태블릿", "주변기기", OTHER_OPTION];
 const operatingSystemOptions = ["Windows 11", "macOS", "iOS·iPadOS", "복수 운영체제", "해당 없음", OTHER_OPTION];
@@ -907,7 +909,7 @@ function HomeScreen({ requests, seats, rooms, seatAvailability, roomAvailability
   const [finderQuery, setFinderQuery] = useState("");
   const catalogMatches = useMemo(() => findCatalogMatches(finderQuery), [finderQuery]);
 
-  const employeeName = "김세호";
+  const employeeName = EMPLOYEE.name;
   const mySeat = seats.find((seat) => seat.assignedTo === "본인");
   const myBooking = rooms
     .map((room) => ({ room, booking: room.bookings.find((booking) => booking.date === "2026-08-18" && booking.organizer === employeeName) }))
@@ -1732,22 +1734,62 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
   );
 }
 
-function BottomNavigation({ active, onChange, desktopOnly }: { active: NavigationTab; onChange: (tab: NavigationTab) => void; desktopOnly?: boolean }) {
-  const tabs: Array<{ id: NavigationTab; label: string; icon: IconName }> = [
-    { id: "home", label: "홈", icon: "home" },
-    { id: "request", label: "신청", icon: "plus" },
-    { id: "seat", label: "공간", icon: "chair" },
-    { id: "mine", label: "내 요청", icon: "list" },
-    { id: "ops", label: "운영", icon: "chart" },
-  ];
+type NavItem = { id: Tab; label: string; deskLabel: string; desc: string; icon: IconName };
+
+// The same nav renders as the mobile tab bar and the desktop rail: the five
+// primary items make up the tab bar, the operations group is desktop-only
+// because those screens are reached from 운영현황 on mobile.
+const primaryNav: NavItem[] = [
+  { id: "home", label: "홈", deskLabel: "홈", desc: "오늘의 업무", icon: "home" },
+  { id: "request", label: "신청", deskLabel: "업무 요청", desc: "서비스 카탈로그", icon: "plus" },
+  { id: "seat", label: "공간", deskLabel: "좌석·공간", desc: "좌석·회의실 예약", icon: "chair" },
+  { id: "mine", label: "내 요청", deskLabel: "내 요청", desc: "진행·처리 결과", icon: "list" },
+];
+
+const operationsNav: NavItem[] = [
+  { id: "ops", label: "운영", deskLabel: "운영현황", desc: "예외·KPI·Case Queue", icon: "chart" },
+  { id: "seatAdmin", label: "공간 관리", deskLabel: "좌석·공간 관리", desc: "정책·배정·예약", icon: "building" },
+  { id: "peopleAdmin", label: "구성원", deskLabel: "구성원 지원 현황", desc: "업무·공간·OA 통합 조회", icon: "user" },
+  { id: "oaAdmin", label: "OA", deskLabel: "OA 신청·반납", desc: "승인·현황 확인", icon: "package" },
+  { id: "budgetAdmin", label: "비용", deskLabel: "비용·계약", desc: "ERP·갱신 연결", icon: "badge" },
+];
+
+function BottomNavigation({ active, onChange, desktopOnly }: { active: Tab; onChange: (tab: Tab) => void; desktopOnly?: boolean }) {
+  const renderItem = (item: NavItem, deskOnly?: boolean) => (
+    <button
+      className={`${active === item.id ? "active" : ""}${deskOnly ? " nav-item-desktop" : ""}`}
+      data-nav={item.id}
+      key={item.id}
+      onClick={() => onChange(item.id)}
+    >
+      <Icon name={item.icon} size={22} />
+      <span className="nav-label">{item.label}</span>
+      <span className="nav-desk"><b>{item.deskLabel}</b><small>{item.desc}</small></span>
+    </button>
+  );
 
   return (
     <nav className={`bottom-nav ${desktopOnly ? "bottom-nav-desktop-only" : ""}`} aria-label="주요 메뉴">
-      {tabs.map((tab) => (
-        <button className={active === tab.id ? "active" : ""} key={tab.id} onClick={() => onChange(tab.id)}>
-          <Icon name={tab.icon} size={22} /><span>{tab.label}</span>
-        </button>
-      ))}
+      <div className="nav-brand">
+        <span className="brand-dot" aria-hidden="true" />
+        <span><b>WORKPLACE</b><small>Employee Center</small></span>
+      </div>
+
+      <p className="nav-group-label">MY WORKPLACE</p>
+      {primaryNav.map((item) => renderItem(item))}
+
+      <p className="nav-group-label">OPERATIONS</p>
+      {renderItem(operationsNav[0])}
+      {operationsNav.slice(1).map((item) => renderItem(item, true))}
+
+      <div className="nav-profile">
+        <span className="nav-profile-avatar" aria-hidden="true">{EMPLOYEE.name[0]}</span>
+        <span>
+          <b>{EMPLOYEE.name}</b>
+          <small>{EMPLOYEE.department} · {getWorkplaceBuilding("pangyo").name}</small>
+          <em>{EMPLOYEE.status}</em>
+        </span>
+      </div>
     </nav>
   );
 }
@@ -1993,7 +2035,7 @@ export default function Home() {
         )}
 
         <BottomNavigation
-          active={isAdminSubScreen ? "ops" : activeTab}
+          active={activeTab}
           desktopOnly={Boolean(selectedRequest) || isAdminSubScreen}
           onChange={(tab) => tab === "request" ? openRequest() : changeTab(tab)}
         />

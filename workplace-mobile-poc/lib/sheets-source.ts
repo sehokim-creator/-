@@ -129,6 +129,29 @@ export function normalizeSheet(binding: SheetBinding, values: string[][]): Sheet
  * pick it up without further changes.
  */
 export const sheetBindings: SheetBinding[] = [
+  /*
+   * 예산 세부내역. This one is not a guess: the 예산관리 대시보드 already reads this
+   * sheet (its SHEET_CONFIG defaults to sheetName '세부내역'), so the operational
+   * path for 비용·계약 is to read the same tab rather than to keep re-importing a
+   * monthly HTML export. Header text still needs confirming against the live tab —
+   * the response reports missingHeaders when it drifts instead of silently
+   * emptying the field.
+   */
+  {
+    id: "budget-lines",
+    label: "예산 세부내역",
+    range: "세부내역!A1:H500",
+    columns: [
+      { header: "예산코드", field: "code", required: true },
+      { header: "구분", field: "type" },
+      { header: "계정", field: "acct" },
+      { header: "예산항목", field: "name" },
+      { header: "예산", field: "budget", type: "won" },
+      { header: "사용액", field: "used", type: "won" },
+      { header: "집행률", field: "pct", type: "percent" },
+      { header: "잔여예산", field: "remain", type: "won" },
+    ],
+  },
   {
     id: "access-cards",
     label: "외부 인원 출입카드 대장",

@@ -21,7 +21,7 @@ import type {
 } from "./seat-management";
 import { createInitialRooms, getRoomStats } from "./room-management";
 import type { RoomBookingPayload, RoomRecord } from "./room-management";
-import { BudgetAdminScreen, contractReviewCount, costSignals, getBudgetOverview } from "./budget-management";
+import { BudgetAdminScreen, contractReviewCount, getBudgetOverview, topOverspend } from "./budget-management";
 import { getWorkplaceBuilding } from "./workplace-locations";
 import { OaAdminScreen } from "./oa-management";
 import { DataFoundationCard, PeopleDirectoryScreen, getPeopleOverview } from "./people-directory";
@@ -1680,7 +1680,17 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
     { id: "EX-oa-return", kind: "미회수", badge: "D+4", title: "대여 iPad 반납 확인이 4일 지났어요", meta: "박서연 · AMS 반납 예정 정보", owner: "OA 운영", bucket: "즉시", actionLabel: "OA 업무 열기", onAction: onOpenOaAdmin },
     req019 && { id: req019.id, kind: "SLA", badge: req019.sla, title: `${req019.title}의 SLA가 임박했어요`, meta: `${req019.id} · ${req019.assignee}`, owner: "배정 대기", bucket: "오늘", actionLabel: "Queue에서 보기", onAction: () => onAdvance(req019) },
     req021 && { id: req021.id, kind: "승인", badge: req021.sla, title: `${req021.title} 승인이 대기 중이에요`, meta: `${req021.id} · ${req021.approval}`, owner: req021.assignee, bucket: "오늘", actionLabel: "Queue에서 보기", onAction: () => onAdvance(req021) },
-    { id: "EX-cost", kind: "비용", badge: "+280만원", title: `${costSignals[0].id}가 기준보다 ${costSignals[0].change} 높아요`, meta: "1,840만원 / 최근 기준 1,560만원", owner: costSignals[0].owner, bucket: "오늘", actionLabel: "비용·계약 열기", onAction: onOpenBudgetAdmin },
+    topOverspend && {
+      id: "EX-cost",
+      kind: "비용",
+      badge: `+${Math.round((topOverspend.used - topOverspend.budget) / 1e4).toLocaleString("ko-KR")}만원`,
+      title: `${topOverspend.name} 집행이 예산을 넘었어요`,
+      meta: `예산 ${(topOverspend.budget / 1e8).toFixed(2)}억 / 집행 ${(topOverspend.used / 1e8).toFixed(2)}억 · ${Math.round(topOverspend.pct)}%`,
+      owner: topOverspend.acct,
+      bucket: "오늘",
+      actionLabel: "비용·계약 열기",
+      onAction: onOpenBudgetAdmin,
+    },
     { id: "EX-contract", kind: "계약", badge: "D-22", title: "지식재산센터 임대차 계약 갱신 결정을 시작해야 해요", meta: "연 5.6억원 · 내부 검토 D-30 기준 경과", owner: "Workplace 기획", bucket: "모니터링", actionLabel: "비용·계약 열기", onAction: onOpenBudgetAdmin },
   ].filter((item): item is ExceptionItem => Boolean(item));
 
@@ -1748,9 +1758,9 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
         <section className="section-block admin-kpi-section">
           <div className="section-heading"><div><h2>비용·계약</h2></div><button onClick={onOpenBudgetAdmin}>현황 열기</button></div>
           <div className="budget-kpi-grid admin-kpi-grid">
-            <article><span>승인 예산</span><b>{budget.budget.toFixed(1)}<small>억원</small></b><small>2026 POC</small></article>
-            <article><span>실제 집행</span><b>{budget.actual.toFixed(1)}<small>억원</small></b><small>ERP 예시</small></article>
-            <article><span>가용 잔액</span><b>{budget.available.toFixed(1)}<small>억원</small></b><small>요청 가능</small></article>
+            <article><span>총 예산</span><b>{budget.budget.toFixed(1)}<small>억원</small></b><small>2026 편성</small></article>
+            <article><span>집행</span><b>{budget.actual.toFixed(1)}<small>억원</small></b><small>{budget.usedRate}% · 경과 {budget.elapsedRate}%</small></article>
+            <article><span>잔여</span><b>{budget.available.toFixed(1)}<small>억원</small></b><small>요청 가능</small></article>
             <article className="attention"><span>계약 검토</span><b>{contractReviewCount}<small>건</small></b><small>90일 이내</small></article>
           </div>
         </section>

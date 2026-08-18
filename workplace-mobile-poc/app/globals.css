@@ -5601,7 +5601,8 @@ span {
 
 /* Same call as the action centre: light, with the bar colours carrying the
    reading instead of an inverted fill. */
-.budget-utilization-card {
+.budget-pacing-card,
+.budget-trend-card {
   margin-top: 10px;
   padding: 15px;
   border: 1px solid var(--line);
@@ -5610,6 +5611,7 @@ span {
   color: var(--text);
 }
 
+.budget-pacing-head,
 .budget-utilization-top {
   display: flex;
   align-items: center;
@@ -5617,59 +5619,420 @@ span {
   gap: 10px;
 }
 
+.budget-pacing-head > span,
 .budget-utilization-top span {
   display: flex;
   flex-direction: column;
 }
 
+.budget-pacing-head small,
 .budget-utilization-top small {
   color: var(--muted);
-  font-size: var(--fs-8);
+  font-size: var(--fs-9);
 }
 
+.budget-pacing-head b,
 .budget-utilization-top b {
   margin-top: 2px;
-  font-size: 15px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
-.budget-utilization-top em {
-  padding: 6px 8px;
-  border-radius: 9px;
-  background: #e0f6ee;
-  color: #00845f;
-  font-size: var(--fs-8);
-  font-weight: 760;
-}
-
-.budget-master-bar,
-.budget-category-bar {
+/*
+ * Utilisation meter. One fill on a lighter step of the same ramp, plus an ink
+ * marker for elapsed time — a spend rate is meaningless without the rate it is
+ * being read against, and the marker is what makes "36%" legible as "under pace
+ * at the half-year".
+ */
+.budget-usage-bar {
   position: relative;
-  overflow: hidden;
-  height: 9px;
-  margin-top: 14px;
+  height: 8px;
+  margin-top: 12px;
   border-radius: 999px;
   background: #e6e9ee;
 }
 
-.budget-master-bar span,
-.budget-master-bar em,
-.budget-category-bar span,
-.budget-category-bar em {
+.budget-usage-bar-lg {
+  height: 12px;
+}
+
+.budget-usage-bar > span {
   position: absolute;
   top: 0;
   bottom: 0;
-}
-
-.budget-master-bar span,
-.budget-category-bar span {
   left: 0;
+  border-radius: 999px;
   background: #6d5bd0;
 }
 
-.budget-master-bar em,
-.budget-category-bar em {
-  background: #b9a9ff;
+.budget-usage-bar > span.over {
+  background: var(--danger);
 }
+
+.budget-pace-marker {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: #4b5563;
+}
+
+/* status tones: colour never travels alone — each ships with a glyph and a word */
+.pace-good,
+.pace-warning,
+.pace-critical,
+.pace-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  padding: 5px 9px;
+  border-radius: 9px;
+  font-size: var(--fs-9);
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.pace-good { background: #e0f6ee; color: #00845f; }
+.pace-warning { background: #fff2e3; color: #b3641c; }
+.pace-critical { background: #fdE7E9; color: #c0303c; }
+.pace-info { background: #eef1f5; color: #5a6673; }
+
+.budget-forecast-basis {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-9);
+  line-height: 1.5;
+}
+
+/*
+ * Monthly trend. Six closed months is few enough to label every column, which
+ * also discharges the contrast relief the fill would otherwise owe.
+ */
+.budget-trend {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 168px;
+  padding-top: 18px;
+}
+
+.budget-trend-col {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 5px;
+}
+
+.budget-trend-col > b {
+  font-size: var(--fs-9);
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.budget-trend-bar {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: #6d5bd0;
+}
+
+.budget-trend-col > small {
+  color: var(--muted);
+  font-size: var(--fs-9);
+}
+
+/* plan line: recessive, labelled, drawn behind the columns */
+.budget-trend-plan {
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-top: 1px dashed #aab3bf;
+}
+
+.budget-trend-plan em {
+  position: absolute;
+  top: -16px;
+  right: 0;
+  color: var(--muted);
+  font-size: var(--fs-9);
+  font-weight: 700;
+}
+
+/* risk buckets */
+.budget-risk-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.budget-risk-card {
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-left: 3px solid #8b95a1;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.budget-risk-card.critical { border-left-color: var(--danger); }
+.budget-risk-card.warning { border-left-color: #f0a83f; }
+.budget-risk-card.info { border-left-color: #8b95a1; }
+
+.budget-risk-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.budget-risk-top > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.budget-risk-card.critical .budget-risk-top > span { color: #c0303c; }
+.budget-risk-card.warning .budget-risk-top > span { color: #b3641c; }
+.budget-risk-card.info .budget-risk-top > span { color: var(--subtext); }
+
+.budget-risk-top > b {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.budget-risk-card ul {
+  margin: 11px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 7px;
+}
+
+.budget-risk-card li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.budget-risk-card li > span {
+  overflow: hidden;
+  color: var(--subtext);
+  font-size: var(--fs-11);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.budget-risk-card li > em {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: var(--fs-11);
+  font-weight: 760;
+}
+
+.budget-risk-card li > em small {
+  color: var(--muted);
+  font-size: var(--fs-9);
+  font-weight: 650;
+}
+
+.budget-risk-card > small {
+  display: block;
+  margin-top: 11px;
+  color: var(--muted);
+  font-size: var(--fs-9);
+  line-height: 1.5;
+}
+
+/* type + owner cards */
+.budget-type-grid,
+.budget-owner-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.budget-type-grid article,
+.budget-owner-grid article {
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.budget-type-top,
+.budget-owner-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.budget-type-top > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.budget-type-top b {
+  font-size: 14px;
+  font-weight: 780;
+}
+
+.budget-type-top small,
+.budget-owner-grid article > small {
+  color: var(--muted);
+  font-size: var(--fs-10);
+}
+
+.budget-owner-top b { font-size: 14px; font-weight: 780; }
+.budget-owner-top em { color: var(--muted); font-size: var(--fs-10); font-weight: 700; }
+.budget-owner-grid article > small { display: block; margin-top: 8px; font-weight: 700; color: var(--subtext); }
+
+/* account table */
+.budget-account-table {
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.budget-account-row {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr)) minmax(0, 1.1fr) auto;
+  padding: 11px 14px;
+  border-top: 1px solid #f1f3f5;
+  font-size: var(--fs-11);
+}
+
+.budget-account-row:first-child { border-top: 0; }
+
+.budget-account-head {
+  background: #f7f8fa;
+  color: var(--muted);
+  font-size: var(--fs-10);
+  font-weight: 750;
+}
+
+.budget-account-row > span:nth-child(n+2) {
+  font-variant-numeric: tabular-nums;
+}
+
+.budget-account-row b { font-size: var(--fs-11); font-weight: 750; }
+.budget-account-row > span:first-child { display: flex; min-width: 0; flex-direction: column; }
+.budget-account-row > span:first-child b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.budget-account-row > span:first-child small { color: var(--muted); font-size: var(--fs-9); }
+
+.budget-account-rate { display: flex; align-items: center; gap: 8px; }
+.budget-account-rate .budget-usage-bar { flex: 1; margin-top: 0; }
+.budget-account-rate > small { flex: none; color: var(--subtext); font-weight: 700; }
+
+/* transactions */
+.budget-tx-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.budget-tx-list article {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.budget-tx-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.budget-tx-top small { color: var(--muted); font-size: var(--fs-10); font-variant-numeric: tabular-nums; }
+.budget-tx-top em { font-size: 13px; font-weight: 780; }
+.budget-tx-list b { display: block; margin-top: 5px; font-size: 13px; font-weight: 730; }
+.budget-tx-list article > small { display: block; margin-top: 3px; color: var(--muted); font-size: var(--fs-10); }
+
+/* approvals */
+.budget-approval-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.budget-approval-list article {
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.budget-approval-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.budget-approval-top > span { display: flex; min-width: 0; flex-direction: column; }
+.budget-approval-top b { font-size: 14px; font-weight: 760; }
+.budget-approval-top small { margin-top: 2px; color: var(--muted); font-size: var(--fs-10); }
+.budget-approval-top em { flex: none; color: var(--subtext); font-size: var(--fs-10); font-weight: 750; }
+
+.budget-approval-list ul { margin: 11px 0 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.budget-approval-list li { display: flex; align-items: baseline; gap: 8px; }
+.budget-approval-cat {
+  flex: none;
+  padding: 3px 7px;
+  border-radius: 7px;
+  background: #eef1f5;
+  color: var(--subtext);
+  font-size: var(--fs-9);
+  font-weight: 700;
+}
+.budget-approval-list a { color: var(--primary); font-size: var(--fs-11); font-weight: 700; }
+
+/* One snapshot, so the as-of date is a fact rather than a choice — a disabled
+   select looked like a broken control and clipped its own value. */
+.budget-asof {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 0;
+  gap: 2px;
+}
+
+.budget-asof span { color: var(--muted); font-size: var(--fs-10); font-weight: 700; }
+.budget-asof b { font-size: 13px; font-weight: 780; font-variant-numeric: tabular-nums; }
+
+.budget-source-note {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 15px;
+  border: 1px solid #dbe6f5;
+  border-radius: 14px;
+  background: #f4f8ff;
+}
+
+.budget-source-note b { flex: none; color: var(--primary); font-size: var(--fs-11); font-weight: 780; }
+.budget-source-note p { margin: 0; color: var(--subtext); font-size: var(--fs-10); line-height: 1.5; }
 
 .budget-bar-legend {
   display: flex;
@@ -5692,6 +6055,7 @@ span {
 
 .budget-bar-legend .commit::before { background: #b9a9ff; }
 .budget-bar-legend .remain::before { background: #ccd2da; }
+.budget-bar-legend .elapsed::before { background: #4b5563; border-radius: 1px; width: 2px; height: 9px; }
 
 .budget-section-heading {
   display: flex;

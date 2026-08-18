@@ -6,15 +6,21 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "install:ci": "bash scripts/install-ci.sh",
-    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
-    "build": "bash scripts/build-verified.sh",
-    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "npm run test:unit && npm run build && node --test tests/rendered-html.test.mjs",
-    "validate:artifact": "bash scripts/validate-artifact.sh",
-    "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate",
-    "test:unit": "node --experimental-strip-types --test tests/sheets-source.test.mjs"
+    "dev": "vinext dev",
+    "build": "vinext build",
+    "start": "vinext start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "npm run test:unit",
+    "test:unit": "node --experimental-strip-types --test tests/sheets-source.test.mjs",
+    "standalone": "node scripts/build-standalone.mjs",
+    "import:budget": "node scripts/import-budget-dashboard.mjs",
+    "audit": "node scripts/audit/screens.mjs",
+    "audit:interact": "node scripts/audit/interactions.mjs",
+    "sites:install-ci": "bash scripts/install-ci.sh",
+    "sites:build": "bash scripts/build-verified.sh",
+    "sites:validate-artifact": "bash scripts/validate-artifact.sh",
+    "sites:db-generate": "bash scripts/sites-env.sh -- drizzle-kit generate"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

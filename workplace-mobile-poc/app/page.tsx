@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { createIntegrationEnvelope } from "../lib/integration-contract";
 import type { IntegrationEnvelope } from "../lib/integration-contract";
@@ -1734,40 +1734,48 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
   );
 }
 
-type NavItem = { id: Tab; label: string; deskLabel: string; desc: string; icon: IconName };
+type NavItem = { id: Tab; label: string; deskLabel: string; desc: string; icon: IconName; onTabBar?: boolean };
 
-// The same nav renders as the mobile tab bar and the desktop rail: the five
-// primary items make up the tab bar, the operations group is desktop-only
-// because those screens are reached from 운영현황 on mobile.
-const primaryNav: NavItem[] = [
-  { id: "home", label: "홈", deskLabel: "홈", desc: "오늘의 업무", icon: "home" },
-  { id: "request", label: "신청", deskLabel: "업무 요청", desc: "서비스 카탈로그", icon: "plus" },
-  { id: "seat", label: "공간", deskLabel: "좌석·공간", desc: "좌석·회의실 예약", icon: "chair" },
-  { id: "mine", label: "내 요청", deskLabel: "내 요청", desc: "진행·처리 결과", icon: "list" },
-];
-
-const operationsNav: NavItem[] = [
-  { id: "ops", label: "운영", deskLabel: "운영현황", desc: "예외·KPI·Case Queue", icon: "chart" },
-  { id: "seatAdmin", label: "공간 관리", deskLabel: "좌석·공간 관리", desc: "정책·배정·예약", icon: "building" },
-  { id: "peopleAdmin", label: "구성원", deskLabel: "구성원 지원 현황", desc: "업무·공간·OA 통합 조회", icon: "user" },
-  { id: "oaAdmin", label: "OA", deskLabel: "OA 신청·반납", desc: "승인·현황 확인", icon: "package" },
-  { id: "budgetAdmin", label: "비용", deskLabel: "비용·계약", desc: "ERP·갱신 연결", icon: "badge" },
+/*
+ * Admin information architecture follows ServiceNow WSD's split between
+ * Employee Center (what a member does), Workplace Central (the agent
+ * workspace where requests are serviced and approved) and Workplace Space
+ * Management (where physical space and contracts are configured). Domain
+ * ownership per the agreed references: Freshservice for the request/case
+ * backbone, OnSpace for space policy, Robin for reservation UX, Envoy for
+ * visitors, WSD for the overall admin model.
+ *
+ * onTabBar marks the five items the mobile tab bar shows; the rest are
+ * desktop-rail only because mobile reaches them through 운영현황.
+ */
+const navGroups: Array<{ label: string; items: NavItem[] }> = [
+  {
+    label: "MY WORKPLACE",
+    items: [
+      { id: "home", label: "홈", deskLabel: "홈", desc: "오늘의 업무", icon: "home", onTabBar: true },
+      { id: "request", label: "신청", deskLabel: "업무 요청", desc: "서비스 카탈로그", icon: "plus", onTabBar: true },
+      { id: "mine", label: "내 요청", deskLabel: "내 요청", desc: "진행·처리 결과", icon: "list", onTabBar: true },
+      { id: "seat", label: "공간", deskLabel: "좌석·공간", desc: "좌석·회의실 예약", icon: "chair", onTabBar: true },
+    ],
+  },
+  {
+    label: "OPERATIONS",
+    items: [
+      { id: "ops", label: "운영", deskLabel: "운영현황", desc: "예외·KPI·Case Queue", icon: "chart", onTabBar: true },
+      { id: "oaAdmin", label: "OA", deskLabel: "OA 신청·반납", desc: "승인·현황 확인", icon: "package" },
+      { id: "peopleAdmin", label: "구성원", deskLabel: "구성원 지원 현황", desc: "업무·공간·OA 통합 조회", icon: "user" },
+    ],
+  },
+  {
+    label: "WORKPLACE MASTER",
+    items: [
+      { id: "seatAdmin", label: "공간 관리", deskLabel: "좌석·공간 관리", desc: "정책·배정·예약", icon: "building" },
+      { id: "budgetAdmin", label: "비용", deskLabel: "비용·계약", desc: "ERP·갱신 연결", icon: "badge" },
+    ],
+  },
 ];
 
 function BottomNavigation({ active, onChange, desktopOnly }: { active: Tab; onChange: (tab: Tab) => void; desktopOnly?: boolean }) {
-  const renderItem = (item: NavItem, deskOnly?: boolean) => (
-    <button
-      className={`${active === item.id ? "active" : ""}${deskOnly ? " nav-item-desktop" : ""}`}
-      data-nav={item.id}
-      key={item.id}
-      onClick={() => onChange(item.id)}
-    >
-      <Icon name={item.icon} size={22} />
-      <span className="nav-label">{item.label}</span>
-      <span className="nav-desk"><b>{item.deskLabel}</b><small>{item.desc}</small></span>
-    </button>
-  );
-
   return (
     <nav className={`bottom-nav ${desktopOnly ? "bottom-nav-desktop-only" : ""}`} aria-label="주요 메뉴">
       <div className="nav-brand">
@@ -1775,12 +1783,23 @@ function BottomNavigation({ active, onChange, desktopOnly }: { active: Tab; onCh
         <span><b>WORKPLACE</b><small>Employee Center</small></span>
       </div>
 
-      <p className="nav-group-label">MY WORKPLACE</p>
-      {primaryNav.map((item) => renderItem(item))}
-
-      <p className="nav-group-label">OPERATIONS</p>
-      {renderItem(operationsNav[0])}
-      {operationsNav.slice(1).map((item) => renderItem(item, true))}
+      {navGroups.map((group) => (
+        <Fragment key={group.label}>
+          <p className="nav-group-label">{group.label}</p>
+          {group.items.map((item) => (
+            <button
+              className={`${active === item.id ? "active" : ""}${item.onTabBar ? "" : " nav-item-desktop"}`}
+              data-nav={item.id}
+              key={item.id}
+              onClick={() => onChange(item.id)}
+            >
+              <Icon name={item.icon} size={22} />
+              <span className="nav-label">{item.label}</span>
+              <span className="nav-desk"><b>{item.deskLabel}</b><small>{item.desc}</small></span>
+            </button>
+          ))}
+        </Fragment>
+      ))}
 
       <div className="nav-profile">
         <span className="nav-profile-avatar" aria-hidden="true">{EMPLOYEE.name[0]}</span>

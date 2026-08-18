@@ -929,6 +929,14 @@ span {
   color: var(--primary);
 }
 
+/* the rail is grouped Employee Center / Operations / Master, so the DOM no
+   longer matches the shipped tab order — restore it for the tab bar */
+.bottom-nav button[data-nav="home"] { order: 1; }
+.bottom-nav button[data-nav="request"] { order: 2; }
+.bottom-nav button[data-nav="seat"] { order: 3; }
+.bottom-nav button[data-nav="mine"] { order: 4; }
+.bottom-nav button[data-nav="ops"] { order: 5; }
+
 .bottom-nav button.active svg {
   stroke-width: 2.25;
 }
@@ -6696,21 +6704,9 @@ span {
     content: "\25CF";
   }
 
-  /* the tab bar keeps its shipped order; the rail follows the sidebar spec
-     (내 요청 above 좌석·공간), so every child gets an explicit order */
-  .nav-brand { order: 0; }
-  .bottom-nav .nav-group-label:first-of-type { order: 1; }
-  .bottom-nav button[data-nav="home"] { order: 2; }
-  .bottom-nav button[data-nav="request"] { order: 3; }
-  .bottom-nav button[data-nav="mine"] { order: 4; }
-  .bottom-nav button[data-nav="seat"] { order: 5; }
-  .bottom-nav .nav-group-label:last-of-type { order: 6; }
-  .bottom-nav button[data-nav="ops"] { order: 7; }
-  .bottom-nav button[data-nav="seatAdmin"] { order: 8; }
-  .bottom-nav button[data-nav="peopleAdmin"] { order: 9; }
-  .bottom-nav button[data-nav="oaAdmin"] { order: 10; }
-  .bottom-nav button[data-nav="budgetAdmin"] { order: 11; }
-  .nav-profile { order: 12; }
+  /* DOM order is the rail order; drop the tab-bar ordering here. Matches the
+     specificity of the [data-nav] rules above so source order decides. */
+  .bottom-nav button[data-nav] { order: 0; }
 
   .bottom-nav button {
     height: auto;

@@ -25,9 +25,13 @@ import { BudgetAdminScreen, contractReviewCount, costSignals, getBudgetOverview 
 import { getWorkplaceBuilding } from "./workplace-locations";
 import { OaAdminScreen } from "./oa-management";
 import { DataFoundationCard, PeopleDirectoryScreen, getPeopleOverview } from "./people-directory";
+import { DomainRoadmapScreen, domainPlans } from "./domain-roadmap";
+import type { DomainKey } from "./domain-roadmap";
 
-type Tab = "home" | "request" | "seat" | "mine" | "ops" | "seatAdmin" | "budgetAdmin" | "peopleAdmin" | "oaAdmin";
-type NavigationTab = Exclude<Tab, "seatAdmin" | "budgetAdmin" | "peopleAdmin" | "oaAdmin">;
+type Tab = "home" | "request" | "seat" | "mine" | "ops" | "seatAdmin" | "budgetAdmin" | "peopleAdmin" | "oaAdmin"
+  | "accessAdmin" | "parkingAdmin" | "welfareAdmin" | "assetAdmin" | "licenseAdmin" | "approvalAdmin";
+type NavigationTab = Exclude<Tab, "seatAdmin" | "budgetAdmin" | "peopleAdmin" | "oaAdmin"
+  | "accessAdmin" | "parkingAdmin" | "welfareAdmin" | "assetAdmin" | "licenseAdmin" | "approvalAdmin">;
 export type Status = "접수" | "처리 중" | "완료";
 type Priority = "일반" | "긴급";
 
@@ -1764,13 +1768,19 @@ const navGroups: Array<{ label: string; items: NavItem[] }> = [
       { id: "ops", label: "운영", deskLabel: "운영현황", desc: "예외·KPI·Case Queue", icon: "chart", onTabBar: true },
       { id: "oaAdmin", label: "OA", deskLabel: "OA 신청·반납", desc: "승인·현황 확인", icon: "package" },
       { id: "peopleAdmin", label: "구성원", deskLabel: "구성원 지원 현황", desc: "업무·공간·OA 통합 조회", icon: "user" },
+      { id: "accessAdmin", label: "출입", deskLabel: "출입·보안 관리", desc: "외부인 카드·지문·방문", icon: "badge" },
+      { id: "parkingAdmin", label: "주차", deskLabel: "주차 관리", desc: "입차율·정기권 대기", icon: "car" },
+      { id: "welfareAdmin", label: "복리후생", deskLabel: "복리후생·물품 운영", desc: "편의점·경조사·굿즈", icon: "sparkle" },
     ],
   },
   {
     label: "WORKPLACE MASTER",
     items: [
       { id: "seatAdmin", label: "공간 관리", deskLabel: "좌석·공간 관리", desc: "정책·배정·예약", icon: "building" },
-      { id: "budgetAdmin", label: "비용", deskLabel: "비용·계약", desc: "ERP·갱신 연결", icon: "badge" },
+      { id: "assetAdmin", label: "자산", deskLabel: "자산·렌탈 관리", desc: "렌탈 기기·지급 자산", icon: "pin" },
+      { id: "licenseAdmin", label: "SW", deskLabel: "SW·라이선스 관리", desc: "좌석 수·갱신·단가", icon: "monitor" },
+      { id: "budgetAdmin", label: "비용", deskLabel: "비용·계약", desc: "ERP·갱신 연결", icon: "chart" },
+      { id: "approvalAdmin", label: "전결", deskLabel: "승인·전결 기준", desc: "금액·유형별 승인자", icon: "check" },
     ],
   },
 ];
@@ -2020,7 +2030,9 @@ export default function Home() {
   const roomStats = getRoomStats(rooms);
   // Admin sub-screens are reached with a back button on mobile, so the tab bar
   // is hidden there; on desktop the same nav is the left rail and stays put.
-  const isAdminSubScreen = activeTab === "seatAdmin" || activeTab === "budgetAdmin" || activeTab === "peopleAdmin" || activeTab === "oaAdmin";
+  const roadmapTabs: Record<string, DomainKey> = { accessAdmin: "access", parkingAdmin: "parking", welfareAdmin: "welfare", assetAdmin: "asset", licenseAdmin: "license", approvalAdmin: "approval" };
+  const roadmapDomain = roadmapTabs[activeTab];
+  const isAdminSubScreen = activeTab === "seatAdmin" || activeTab === "budgetAdmin" || activeTab === "peopleAdmin" || activeTab === "oaAdmin" || Boolean(roadmapDomain);
 
   return (
     <div className="page-stage">
@@ -2047,6 +2059,8 @@ export default function Home() {
           <><AppHeader title="비용·계약 관리" back onBack={() => changeTab("ops")} /><BudgetAdminScreen /></>
         ) : activeTab === "peopleAdmin" ? (
           <><AppHeader title="구성원 지원 현황" back onBack={() => changeTab("ops")} /><PeopleDirectoryScreen /></>
+        ) : roadmapDomain ? (
+          <><AppHeader title={domainPlans[roadmapDomain].title} back onBack={() => changeTab("ops")} /><DomainRoadmapScreen domain={roadmapDomain} /></>
         ) : activeTab === "oaAdmin" ? (
           <><AppHeader title="OA 신청·반납" back onBack={() => changeTab("ops")} /><OaAdminScreen requests={requests} onAdvance={advanceRequest} /></>
         ) : (

@@ -312,6 +312,123 @@ span {
   white-space: nowrap;
 }
 
+.tag-attention {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 27px;
+  padding: 5px 9px;
+  border-radius: 10px;
+  background: #fff2df;
+  color: #dc7b10;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Domain intake screens: sheets that are still the source of truth */
+
+.domain-roadmap-screen {
+  padding-top: 14px;
+}
+
+.domain-roadmap-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.domain-roadmap-card {
+  padding: 18px 17px;
+}
+
+.domain-roadmap-card .section-heading small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.domain-sheet-list {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.domain-sheet-list li {
+  padding: 11px 13px;
+  border-radius: 13px;
+  background: #f7f8fa;
+}
+
+.domain-sheet-list li + li {
+  margin-top: 7px;
+}
+
+.domain-sheet-list b {
+  display: block;
+  font-size: 12px;
+  font-weight: 730;
+}
+
+.domain-sheet-list small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.domain-meta {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+}
+
+.domain-meta dt {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.domain-meta dd {
+  margin: 3px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.domain-scope-list {
+  margin: 14px 0 0;
+  padding-left: 20px;
+  list-style: decimal;
+}
+
+.domain-scope-list li {
+  color: var(--subtext);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.domain-scope-list li + li {
+  margin-top: 7px;
+}
+
+.domain-reference {
+  margin: 16px 0 0;
+  padding: 12px 13px;
+  border-radius: 13px;
+  background: #eaf1ff;
+  color: var(--subtext);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.domain-reference b {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--text);
+  font-weight: 730;
+}
+
 .today-reservation-card {
   margin-top: 4px;
   padding: 18px 17px;
@@ -6994,6 +7111,15 @@ span {
     grid-row: 1;
     grid-column: 2;
     margin: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .domain-roadmap-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 20px;
   }
 }
 

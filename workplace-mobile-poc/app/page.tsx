@@ -884,7 +884,18 @@ function StatusBadge({ status }: { status: Status }) {
   return <span className={`status-badge status-${status.replace(" ", "-")}`}>{status}</span>;
 }
 
+/*
+ * The rail group a screen belongs to, used as the breadcrumb ancestor on
+ * desktop. Derived from navGroups by matching the header title against the rail
+ * label so the two can never drift apart; screens that are not rail
+ * destinations (요청 상세, the domain roadmaps) simply get no crumb.
+ */
+function navGroupFor(title: string): string | undefined {
+  return navGroups.find((group) => group.items.some((item) => item.deskLabel === title))?.label;
+}
+
 function AppHeader({ title, back, onBack }: { title?: string; back?: boolean; onBack?: () => void }) {
+  const group = title ? navGroupFor(title) : undefined;
   return (
     <header className={`top-header ${title ? "top-header-title" : ""}`}>
       {back ? (
@@ -894,6 +905,7 @@ function AppHeader({ title, back, onBack }: { title?: string; back?: boolean; on
       ) : (
         <div className="brand-mark"><span className="brand-dot" />WORKPLACE</div>
       )}
+      {group && <span className="top-crumb">{group}</span>}
       {title && <h1>{title}</h1>}
       <button className="icon-button notification-button" aria-label="알림"><Icon name="bell" /><span className="notification-dot" /></button>
     </header>
@@ -1315,6 +1327,10 @@ function RequestScreen({ initialCategory, initialRequestTypeId, onSubmit, onBack
     <>
       <AppHeader title="업무 요청" back onBack={step === 2 ? () => setStep(1) : onBack} />
       <main className="screen request-screen">
+        <header className="screen-title">
+          <h1>업무 요청</h1>
+          <p>필요한 업무를 고르면 처리에 필요한 항목만 이어서 물어봐요.</p>
+        </header>
         <div className="stepper" aria-label={`2단계 중 ${step}단계`}>
           <span className={step >= 1 ? "active" : ""} /><span className={step >= 2 ? "active" : ""} />
           <small>{step === 1 ? "업무 특성에 맞는 정보를 입력해 주세요" : "등록 전 내용과 처리 흐름을 확인해 주세요"}</small>
@@ -1471,6 +1487,10 @@ function MyRequestsScreen({ requests, onOpenDetail }: { requests: RequestItem[];
     <>
       <AppHeader title="내 요청" />
       <main className="screen mine-screen">
+        <header className="screen-title">
+          <h1>내 요청</h1>
+          <p>내가 넣은 요청의 진행 단계와 처리 결과를 확인해요.</p>
+        </header>
         <div className="search-field"><Icon name="search" size={20} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="요청명 또는 요청번호 검색" /></div>
         <div className="filter-tabs" role="tablist">
           {(["전체", "접수", "처리 중", "완료"] as const).map((item) => (
@@ -2101,7 +2121,7 @@ export default function Home() {
         ) : activeTab === "seatAdmin" ? (
           <><AppHeader title="좌석·공간 관리" back onBack={() => changeTab("ops")} /><SpaceAdminScreen seats={seats} policies={seatPolicies} reservations={seatReservations} rooms={rooms} onAssign={assignSeat} onRelease={releaseSeat} onMove={moveSeat} onApprove={approveSeat} onUpdatePolicy={updateSeatPolicy} onReserveShared={reserveSharedSeatForEmployee} onCancelShared={cancelSharedSeat} onBookRoom={bookRoom} onToast={showToast} /></>
         ) : activeTab === "budgetAdmin" ? (
-          <><AppHeader title="비용·계약 관리" back onBack={() => changeTab("ops")} /><BudgetAdminScreen /></>
+          <><AppHeader title="비용·계약" back onBack={() => changeTab("ops")} /><BudgetAdminScreen /></>
         ) : activeTab === "peopleAdmin" ? (
           <><AppHeader title="구성원 지원 현황" back onBack={() => changeTab("ops")} /><PeopleDirectoryScreen /></>
         ) : roadmapDomain ? (

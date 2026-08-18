@@ -32,6 +32,22 @@
   --warning: #ff9500;
   --danger: #f04452;
   --violet: #6f5cff;
+
+  /*
+   * Micro-label scale.
+   *
+   * The screens were drawn mobile-first, where these labels sit inside dense
+   * badges, pills and table cells on a 390px canvas. Reused unchanged on a
+   * 1584px desktop canvas they read as unreadably small — the internal consoles
+   * this sits beside (payments internal, finance internal, 조직도) put their
+   * smallest text at 12–13px. So the scale lifts at the desktop breakpoint
+   * rather than being duplicated across 230 selectors.
+   */
+  --fs-7: 7px;
+  --fs-8: 8px;
+  --fs-9: 9px;
+  --fs-10: 10px;
+  --fs-11: 11px;
 }
 
 * {
@@ -240,6 +256,16 @@ span {
   letter-spacing: 0.03em;
 }
 
+/*
+ * Desktop-only chrome. On a phone the app bar already shows the screen title and
+ * the rail group has no meaning, so both stay hidden until the desktop
+ * breakpoint switches the app bar over to a breadcrumb.
+ */
+.top-crumb,
+.screen-title {
+  display: none;
+}
+
 .hero-section {
   padding: 19px 2px 22px;
 }
@@ -306,7 +332,7 @@ span {
   border-radius: 10px;
   background: #e7f8f1;
   color: #008f65;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 750;
   line-height: 1;
   white-space: nowrap;
@@ -353,7 +379,7 @@ span {
 .login-brand small {
   margin-top: 1px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .login-card h1 {
@@ -432,7 +458,7 @@ span {
   border-radius: 14px;
   background: #fff9f0;
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
   line-height: 1.55;
 }
 
@@ -456,7 +482,7 @@ span {
   border-radius: 10px;
   background: #fff2df;
   color: #dc7b10;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 750;
   line-height: 1;
   white-space: nowrap;
@@ -481,7 +507,7 @@ span {
 
 .domain-roadmap-card .section-heading small {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .domain-sheet-list {
@@ -510,7 +536,7 @@ span {
   display: block;
   margin-top: 3px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
   line-height: 1.45;
 }
 
@@ -522,7 +548,7 @@ span {
 
 .domain-meta dt {
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .domain-meta dd {
@@ -553,7 +579,7 @@ span {
   border-radius: 13px;
   background: #eaf1ff;
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
   line-height: 1.5;
 }
 
@@ -571,7 +597,7 @@ span {
 
 .today-reservation-card .section-heading small {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .today-reservation-card .section-heading h2 {
@@ -610,7 +636,7 @@ span {
 
 .today-reservation-row small {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .today-reservation-row b {
@@ -623,7 +649,7 @@ span {
 .today-reservation-row em {
   margin-top: 2px;
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-style: normal;
 }
 
@@ -674,7 +700,7 @@ span {
 .quick-action-tile small {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .smart-intake {
@@ -707,7 +733,7 @@ span {
 
 .smart-intake-heading small {
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
   line-height: 1.4;
 }
 
@@ -775,7 +801,7 @@ span {
   border-radius: 999px;
   background: #fff;
   color: #596573;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 650;
 }
 
@@ -816,7 +842,7 @@ span {
 
 .smart-intake-result small {
   color: var(--primary);
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 720;
 }
 
@@ -833,7 +859,7 @@ span {
 .smart-intake-result em {
   overflow: hidden;
   color: var(--subtext);
-  font-size: 10px;
+  font-size: var(--fs-10);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -857,7 +883,7 @@ span {
   gap: 12px;
   padding: 11px 2px 1px;
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .smart-intake-empty button {
@@ -866,7 +892,7 @@ span {
   border-radius: 10px;
   background: var(--primary-soft);
   color: var(--primary);
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 720;
 }
 
@@ -1006,7 +1032,7 @@ span {
   max-width: 100%;
   margin-top: 3px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--fs-10);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1046,7 +1072,7 @@ span {
 .request-copy small {
   margin-bottom: 5px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .request-copy b {
@@ -1062,7 +1088,7 @@ span {
 .request-copy em {
   margin-top: 6px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .request-state {
@@ -1079,7 +1105,7 @@ span {
   min-height: 27px;
   padding: 5px 9px;
   border-radius: 10px;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 750;
   line-height: 1;
   white-space: nowrap;
@@ -1120,7 +1146,7 @@ span {
   overflow: hidden;
   margin-top: 2px;
   color: #7c8795;
-  font-size: 11px;
+  font-size: var(--fs-11);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1173,7 +1199,7 @@ span {
   border-radius: 16px;
   background: transparent;
   color: #a1a9b2;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 650;
 }
 
@@ -1347,7 +1373,7 @@ span {
 .field-help {
   margin: -1px 2px 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
   line-height: 1.5;
 }
 
@@ -1355,7 +1381,7 @@ span {
   align-self: flex-end;
   margin-top: -5px;
   color: #a1a9b2;
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .upload-box {
@@ -1406,7 +1432,7 @@ span {
 .upload-box small {
   margin-top: 3px;
   color: #a1a9b2;
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .form-error {
@@ -1601,7 +1627,7 @@ span {
 
 .request-card-top > span:first-child {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 650;
 }
 
@@ -1617,7 +1643,7 @@ span {
   flex-direction: column;
   gap: 5px;
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .request-meta span {
@@ -1645,7 +1671,7 @@ span {
 
 .request-card-bottom small,
 .request-card-bottom em {
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .empty-state {
@@ -1706,7 +1732,7 @@ span {
 .detail-title p {
   margin: 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .progress-card,
@@ -1730,7 +1756,7 @@ span {
   border-radius: 10px;
   background: #fff3e5;
   color: #df7d11;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 700;
 }
 
@@ -1796,7 +1822,7 @@ span {
 .timeline-item small {
   margin-top: 3px;
   color: #a1a9b2;
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .detail-card dl {
@@ -1875,7 +1901,7 @@ span {
   border-radius: 12px;
   background: #e4e8ec;
   color: #4e5968;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 700;
 }
 
@@ -1902,7 +1928,7 @@ span {
 
 .kpi-card > span {
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 650;
 }
 
@@ -1916,14 +1942,14 @@ span {
 .kpi-card b small {
   margin-left: 3px;
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 650;
 }
 
 .kpi-card em {
   padding: 5px 8px;
   border-radius: 9px;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 750;
 }
 
@@ -1963,7 +1989,7 @@ span {
 .ops-list-section .eyebrow {
   margin-bottom: 2px;
   color: var(--primary);
-  font-size: 9px;
+  font-size: var(--fs-9);
   letter-spacing: 0.12em;
 }
 
@@ -1973,7 +1999,7 @@ span {
 
 .priority {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 680;
 }
 
@@ -1983,7 +2009,7 @@ span {
   border-radius: 9px;
   background: #fff0f2;
   color: var(--danger);
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 780;
 }
 
@@ -2000,7 +2026,7 @@ span {
   gap: 5px;
   margin: 0;
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .ops-request-card > p svg {
@@ -2036,13 +2062,13 @@ span {
 
 .ops-owner small {
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .ops-owner b {
   overflow: hidden;
   margin-top: 1px;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2050,7 +2076,7 @@ span {
 
 .ops-owner em {
   color: #7a8592;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 650;
 }
 
@@ -2129,7 +2155,7 @@ span {
 .catalog-service-card > span:nth-child(2) small,
 .review-summary-card > span:nth-child(2) small {
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 650;
 }
 
@@ -2146,7 +2172,7 @@ span {
   overflow: hidden;
   margin-top: 2px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--fs-10);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2165,7 +2191,7 @@ span {
   outline: 0;
   background: #f1f3f5;
   color: #4e5968;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 680;
   text-align: center;
 }
@@ -2198,7 +2224,7 @@ span {
   border-radius: 11px;
   background: var(--primary-soft);
   color: var(--primary);
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 800;
 }
 
@@ -2212,7 +2238,7 @@ span {
 .catalog-section-title p {
   margin: 3px 0 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .request-type-list {
@@ -2263,7 +2289,7 @@ span {
   overflow: hidden;
   margin-top: 2px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--fs-10);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2341,7 +2367,7 @@ span {
 
 .workflow-preview-grid small {
   color: #7b91ab;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .workflow-preview-grid b {
@@ -2349,7 +2375,7 @@ span {
   margin-top: 2px;
   overflow: hidden;
   color: #385572;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 720;
   line-height: 1.35;
   -webkit-box-orient: vertical;
@@ -2359,7 +2385,7 @@ span {
 .workflow-preview > p {
   margin: 10px 1px 0;
   color: #627d99;
-  font-size: 9px;
+  font-size: var(--fs-9);
   line-height: 1.5;
 }
 
@@ -2373,7 +2399,7 @@ span {
   display: inline-flex;
   margin-left: 6px;
   color: var(--primary);
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 750;
   vertical-align: 1px;
 }
@@ -2396,7 +2422,7 @@ span {
 .field-inline-error {
   margin: -2px 2px 0;
   color: #d93a49;
-  font-size: 10px;
+  font-size: var(--fs-10);
   line-height: 1.45;
 }
 
@@ -2477,7 +2503,7 @@ span {
 .check-field small {
   margin-top: 2px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .multi-choice-grid {
@@ -2496,7 +2522,7 @@ span {
   border-radius: 13px;
   background: #fff;
   color: #5d6876;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 650;
   text-align: left;
 }
@@ -2552,14 +2578,14 @@ span {
 
 .auto-priority-card b {
   color: #d93b4a;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 730;
 }
 
 .auto-priority-card small {
   margin-top: 2px;
   color: #a96d73;
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .review-summary-card {
@@ -2572,7 +2598,7 @@ span {
   border-radius: 10px;
   background: #e8f2ff;
   color: var(--primary);
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 740;
 }
 
@@ -2616,13 +2642,13 @@ span {
 
 .workflow-review-card dt {
   color: #7790aa;
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .workflow-review-card dd {
   margin: 0;
   color: #395874;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 680;
 }
 
@@ -2634,7 +2660,7 @@ span {
   border-radius: 8px;
   background: #f0f2f4;
   color: #6b7684;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 650;
 }
 
@@ -2669,7 +2695,7 @@ span {
 
 .seat-home-shortcut small {
   color: var(--subtext);
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .seat-home-shortcut > svg {
@@ -2734,7 +2760,7 @@ span {
 
 .seat-admin-entry small {
   color: #82d9bd;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 800;
   letter-spacing: 0.11em;
 }
@@ -2750,7 +2776,7 @@ span {
   overflow: hidden;
   margin-top: 4px;
   color: rgba(255, 255, 255, 0.67);
-  font-size: 10px;
+  font-size: var(--fs-10);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2760,7 +2786,7 @@ span {
   align-items: center;
   gap: 2px;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 680;
   white-space: nowrap;
 }
@@ -2787,7 +2813,7 @@ span {
 .seat-workday-hero .eyebrow {
   margin: 0 0 4px;
   color: #3182f6;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 800;
   letter-spacing: .12em;
 }
@@ -2802,7 +2828,7 @@ span {
 .seat-workday-hero p:last-child {
   margin: 6px 0 0;
   color: #6b7684;
-  font-size: 11px;
+  font-size: var(--fs-11);
   line-height: 1.5;
 }
 
@@ -2814,7 +2840,7 @@ span {
 
 .seat-workday-hero label span {
   color: #8b95a1;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 700;
 }
 
@@ -2826,7 +2852,7 @@ span {
   border-radius: 13px;
   background: #fff;
   color: #333d4b;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 650;
 }
 
@@ -2860,14 +2886,14 @@ span {
 
 .seat-operation-summary small {
   color: #8b95a1;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .seat-operation-summary b {
   margin-top: 2px;
   overflow: hidden;
   color: #333d4b;
-  font-size: 11px;
+  font-size: var(--fs-11);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2877,7 +2903,7 @@ span {
   border-radius: 9px;
   background: #e8f2ff;
   color: #2478ed;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 760;
   white-space: nowrap;
 }
@@ -2891,7 +2917,7 @@ span {
 .seat-section-heading .eyebrow {
   margin-bottom: 3px;
   color: #3182f6;
-  font-size: 9px;
+  font-size: var(--fs-9);
   letter-spacing: 0.12em;
 }
 
@@ -2959,14 +2985,14 @@ span {
 .seat-admin-floor-control small,
 .seat-policy-guide label span {
   color: #6b7684;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .seat-policy-guide b,
 .seat-admin-floor-control b {
   overflow: hidden;
   margin-top: 2px;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 760;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2981,7 +3007,7 @@ span {
   border: 1px solid #cddfd8;
   border-radius: 11px;
   background: #fff;
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .my-space-cards {
@@ -3032,7 +3058,7 @@ span {
 
 .my-seat-card small {
   color: #8b95a1;
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .my-seat-card b {
@@ -3046,14 +3072,14 @@ span {
   overflow: hidden;
   margin-top: 3px;
   color: #6b7684;
-  font-size: 9px;
+  font-size: var(--fs-9);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .my-seat-card strong {
   color: #3182f6;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 680;
   white-space: nowrap;
 }
@@ -3075,7 +3101,7 @@ span {
 
 .seat-section-heading > span {
   color: var(--subtext);
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .seat-section-heading > span b {
@@ -3092,7 +3118,7 @@ span {
   display: block;
   margin: 0 0 7px 2px;
   color: #8b95a1;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 700;
 }
 
@@ -3135,7 +3161,7 @@ span {
 
 .floor-picker small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .floor-picker button.selected small {
@@ -3197,7 +3223,7 @@ span {
   border-radius: 999px;
   background: #fff;
   color: #6b7684;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 680;
   white-space: nowrap;
 }
@@ -3226,7 +3252,7 @@ span {
   margin: 14px 1px 8px;
   overflow-x: auto;
   color: var(--subtext);
-  font-size: 8px;
+  font-size: var(--fs-8);
   scrollbar-width: none;
 }
 
@@ -3284,7 +3310,7 @@ span {
 .seat-map-kicker {
   margin-bottom: 1px;
   color: #3182f6;
-  font-size: 7px;
+  font-size: var(--fs-7);
   font-weight: 800;
   letter-spacing: 0.06em;
 }
@@ -3298,7 +3324,7 @@ span {
   overflow: hidden;
   margin-top: 2px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3319,7 +3345,7 @@ span {
   border-radius: 8px;
   background: transparent;
   color: #8b95a1;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 720;
 }
 
@@ -3357,7 +3383,7 @@ span {
   border-radius: 8px;
   background: transparent;
   color: #6b7684;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 700;
 }
 
@@ -3374,7 +3400,7 @@ span {
   border-radius: 9px;
   background: #f2f4f6;
   color: #4e5968;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 700;
 }
 
@@ -3402,7 +3428,7 @@ span {
 }
 
 .zoom-controls em {
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 700;
   text-align: center;
 }
@@ -3420,13 +3446,13 @@ span {
 
 .seat-map-tap-guide span {
   color: #236fce;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 750;
 }
 
 .seat-map-tap-guide small {
   color: #7d94af;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .seat-map-scroll {
@@ -3470,7 +3496,7 @@ span {
   border-radius: 50%;
   background: #fff;
   color: #6b7684;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 800;
 }
 
@@ -3481,7 +3507,7 @@ span {
   border-radius: 7px;
   background: rgba(51, 61, 75, .88);
   color: #fff;
-  font-size: 7px;
+  font-size: var(--fs-7);
   font-weight: 800;
   letter-spacing: .08em;
 }
@@ -3499,7 +3525,7 @@ span {
   border-radius: 12px;
   background: rgba(249, 250, 251, 0.96);
   color: #687481;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 700;
   text-align: center;
 }
@@ -3538,7 +3564,7 @@ span {
   top: 5px;
   left: 7px;
   color: #4e5968;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 800;
   letter-spacing: -0.01em;
 }
@@ -3549,7 +3575,7 @@ span {
   right: 6px;
   padding: 2px 5px;
   border-radius: 5px;
-  font-size: 7px;
+  font-size: var(--fs-7);
   font-weight: 800;
 }
 
@@ -3719,14 +3745,14 @@ span {
   flex-direction: column;
 }
 
-.seat-list-view b { font-size: 11px; font-weight: 770; }
+.seat-list-view b { font-size: var(--fs-11); font-weight: 770; }
 
 .seat-list-view small,
 .seat-list-view em {
   overflow: hidden;
   margin-top: 2px;
   color: #8b95a1;
-  font-size: 8px;
+  font-size: var(--fs-8);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3736,7 +3762,7 @@ span {
 .seat-list-view strong {
   padding: 5px 7px;
   border-radius: 8px;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 760;
 }
 
@@ -3756,7 +3782,7 @@ span {
 }
 
 .seat-list-empty b { margin-top: 5px; color: #4e5968; font-size: 12px; }
-.seat-list-empty small { font-size: 9px; }
+.seat-list-empty small { font-size: var(--fs-9); }
 
 .seat-select-guide {
   display: grid;
@@ -3788,7 +3814,7 @@ span {
 
 .seat-select-guide small {
   margin-top: 3px;
-  font-size: 9px;
+  font-size: var(--fs-9);
   line-height: 1.45;
 }
 
@@ -3856,7 +3882,7 @@ span {
 
 .seat-detail-top small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .seat-detail-top h3 {
@@ -3870,7 +3896,7 @@ span {
   padding: 6px 8px;
   border: 1px solid transparent;
   border-radius: 9px;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 750;
   white-space: nowrap;
 }
@@ -3896,7 +3922,7 @@ span {
   border-radius: 9px;
   background: #f2f4f6;
   color: #5b6672;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 690;
 }
 
@@ -3923,7 +3949,7 @@ span {
 .seat-detail-more summary {
   padding: 9px 0 1px;
   color: #6b7684;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 700;
   cursor: pointer;
 }
@@ -3938,13 +3964,13 @@ span {
 
 .seat-detail-card dt {
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .seat-detail-card dd {
   margin: 0;
   color: #4e5968;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 670;
 }
 
@@ -3952,7 +3978,7 @@ span {
   display: inline-flex;
   padding: 3px 7px;
   border-radius: 7px;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 760;
 }
 
@@ -3986,7 +4012,7 @@ span {
   border-radius: 13px;
   background: #fff5dd;
   color: #9a6b12;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 650;
   text-align: center;
 }
@@ -3994,7 +4020,7 @@ span {
 .seat-poc-note {
   margin: 13px 0 0;
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
   text-align: center;
 }
 
@@ -4018,7 +4044,7 @@ span {
   border-radius: 10px;
   background: #e8f2ff;
   color: #2478ed;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 800;
 }
 
@@ -4040,7 +4066,7 @@ span {
 
 .seat-admin-kpis span {
   color: var(--subtext);
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .seat-admin-kpis b {
@@ -4054,7 +4080,7 @@ span {
 .seat-admin-kpis small {
   margin-top: auto;
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .seat-admin-floor-control {
@@ -4102,7 +4128,7 @@ span {
 
 .seat-policy-admin-heading small {
   color: #3182f6;
-  font-size: 7px;
+  font-size: var(--fs-7);
   font-weight: 800;
   letter-spacing: 0.12em;
 }
@@ -4116,7 +4142,7 @@ span {
 .seat-policy-admin-heading em {
   margin-top: 2px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
   line-height: 1.4;
 }
 
@@ -4152,14 +4178,14 @@ span {
 }
 
 .seat-policy-zone-top b {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 770;
 }
 
 .seat-policy-zone-top small {
   margin-top: 1px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: var(--fs-7);
 }
 
 .seat-policy-zone-top > em {
@@ -4167,7 +4193,7 @@ span {
   border-radius: 8px;
   background: #e9eef4;
   color: #52708f;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 780;
 }
 
@@ -4209,13 +4235,13 @@ span {
 }
 
 .seat-policy-mode-toggle b {
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .seat-policy-mode-toggle small {
   margin-top: 1px;
   color: inherit;
-  font-size: 7px;
+  font-size: var(--fs-7);
   opacity: 0.75;
 }
 
@@ -4236,7 +4262,7 @@ span {
 .seat-policy-rule-grid span,
 .fixed-policy-copy > span {
   color: var(--muted);
-  font-size: 7px;
+  font-size: var(--fs-7);
   font-weight: 680;
 }
 
@@ -4247,7 +4273,7 @@ span {
   border: 1px solid #d8e1dd;
   border-radius: 10px;
   background: #fff;
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .seat-policy-rule-grid select:disabled {
@@ -4272,7 +4298,7 @@ span {
 }
 
 .fixed-policy-copy > b {
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .fixed-policy-copy button {
@@ -4282,7 +4308,7 @@ span {
   border-radius: 8px;
   background: #fff;
   color: #45698e;
-  font-size: 7px;
+  font-size: var(--fs-7);
   font-weight: 720;
 }
 
@@ -4315,7 +4341,7 @@ span {
 
 .seat-approval-queue > div:first-child small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .seat-approval-queue > div:first-child b {
@@ -4339,12 +4365,12 @@ span {
 }
 
 .seat-approval-queue > button b {
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .seat-approval-queue > button small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .seat-approval-queue > button em {
@@ -4352,7 +4378,7 @@ span {
   border-radius: 10px;
   background: #e8f2ff;
   color: #2478ed;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 750;
 }
 
@@ -4375,12 +4401,12 @@ span {
 }
 
 .seat-move-banner b {
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .seat-move-banner small {
   margin-top: 2px;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .seat-move-banner button {
@@ -4388,7 +4414,7 @@ span {
   border-radius: 9px;
   background: #fff;
   color: #4e7fb9;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 700;
 }
 
@@ -4408,11 +4434,11 @@ span {
 }
 
 .seat-admin-footnote b {
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .seat-admin-footnote span {
-  font-size: 8px;
+  font-size: var(--fs-8);
   line-height: 1.5;
 }
 
@@ -4456,7 +4482,7 @@ span {
 
 .assignment-sheet-heading small {
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .assignment-sheet-heading h2 {
@@ -4491,7 +4517,7 @@ span {
 .seat-assignment-sheet > label > span,
 .seat-assignment-sheet legend {
   color: #4e5968;
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 700;
 }
 
@@ -4548,13 +4574,13 @@ span {
 }
 
 .assignment-mode b {
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .assignment-mode small {
   margin-top: 2px;
   color: var(--muted);
-  font-size: 7px;
+  font-size: var(--fs-7);
   line-height: 1.35;
 }
 
@@ -4568,7 +4594,7 @@ span {
   border-radius: 11px;
   background: #eaf8f3;
   color: #11795e;
-  font-size: 8px;
+  font-size: var(--fs-8);
   line-height: 1.45;
 }
 
@@ -4643,7 +4669,7 @@ span {
 
 .building-picker-card small {
   color: #8b95a1;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 690;
 }
 
@@ -4663,7 +4689,7 @@ span {
 .building-picker-card em {
   padding: 6px 8px;
   border-radius: 10px;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 750;
   white-space: nowrap;
 }
@@ -4700,7 +4726,7 @@ span {
 
 .location-setup-state small {
   color: #3182f6;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 800;
   letter-spacing: .11em;
 }
@@ -4715,7 +4741,7 @@ span {
   max-width: 430px;
   margin: 8px auto 0;
   color: #6b7684;
-  font-size: 10px;
+  font-size: var(--fs-10);
   line-height: 1.55;
 }
 
@@ -4738,7 +4764,7 @@ span {
   border-radius: 12px;
   background: #fff;
   color: #4e5968;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .location-setup-state li b {
@@ -4749,7 +4775,7 @@ span {
   border-radius: 50%;
   background: #333d4b;
   color: #fff;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .room-screen {
@@ -4764,7 +4790,7 @@ span {
 .room-section-heading .eyebrow {
   margin-bottom: 3px;
   color: #3182f6;
-  font-size: 9px;
+  font-size: var(--fs-9);
   letter-spacing: 0.12em;
 }
 
@@ -4804,7 +4830,7 @@ span {
 .room-booking-bar label span,
 .room-booking-sheet label span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 690;
 }
 
@@ -4816,7 +4842,7 @@ span {
   border: 1px solid #dfe4e8;
   border-radius: 11px;
   background: #f8f9fa;
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .room-scope-bar {
@@ -4861,7 +4887,7 @@ span {
   display: block;
   margin-top: 2px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .room-available-switch input {
@@ -4917,7 +4943,7 @@ span {
 
 .room-section-heading > span {
   color: var(--subtext);
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .room-section-heading > span b {
@@ -4939,7 +4965,7 @@ span {
   border-radius: 13px;
   background: #fff;
   color: #6b7684;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 730;
 }
 
@@ -4967,7 +4993,7 @@ span {
   border-radius: 11px;
   background: #e7eaed;
   color: #6b7684;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 680;
   white-space: nowrap;
 }
@@ -5023,7 +5049,7 @@ span {
 
 .room-card-top small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .room-card-top b {
@@ -5035,7 +5061,7 @@ span {
 .room-card-top em {
   padding: 6px 8px;
   border-radius: 9px;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 750;
 }
 
@@ -5054,7 +5080,7 @@ span {
   gap: 12px;
   margin-top: 11px;
   color: #6b7684;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .room-card-meta span {
@@ -5083,7 +5109,7 @@ span {
   grid-template-columns: 42px 1fr;
   gap: 7px;
   color: #66717e;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .room-schedule-preview b {
@@ -5129,7 +5155,7 @@ span {
 
 .room-selected-card small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .room-selected-card b {
@@ -5140,7 +5166,7 @@ span {
   overflow: hidden;
   margin-top: 2px;
   color: #706b83;
-  font-size: 8px;
+  font-size: var(--fs-8);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -5153,7 +5179,7 @@ span {
   border-radius: 13px;
   background: #3182f6;
   color: #fff;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 750;
 }
 
@@ -5169,7 +5195,7 @@ span {
   border-radius: 13px;
   background: #e8ecef;
   color: #6b7684;
-  font-size: 8px;
+  font-size: var(--fs-8);
   line-height: 1.5;
 }
 
@@ -5213,7 +5239,7 @@ span {
 
 .room-sheet-title small {
   color: #3182f6;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 750;
 }
 
@@ -5259,7 +5285,7 @@ span {
 .room-sheet-availability {
   padding: 11px 12px;
   border-radius: 12px;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 690;
 }
 
@@ -5276,7 +5302,7 @@ span {
 .room-approval-note {
   margin: 9px 0 0;
   color: #9a6b12;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .room-admin-screen {
@@ -5301,7 +5327,7 @@ span {
 
 .room-admin-summary span {
   color: var(--subtext);
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .room-admin-summary b {
@@ -5314,7 +5340,7 @@ span {
 .room-admin-summary small {
   margin-top: auto;
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .room-admin-policy {
@@ -5347,7 +5373,7 @@ span {
 
 .room-admin-policy small {
   color: #a99cf2;
-  font-size: 7px;
+  font-size: var(--fs-7);
   font-weight: 780;
   letter-spacing: .08em;
 }
@@ -5360,7 +5386,7 @@ span {
   overflow: hidden;
   margin-top: 2px;
   color: rgba(255, 255, 255, 0.62);
-  font-size: 7px;
+  font-size: var(--fs-7);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -5370,11 +5396,11 @@ span {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.11);
   color: #fff;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .room-section-heading.admin > span {
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .room-list.admin {
@@ -5413,7 +5439,7 @@ span {
   border-radius: 11px;
   background: #e8f2ff;
   color: #2478ed;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 740;
 }
 
@@ -5440,12 +5466,12 @@ span {
 
 .room-admin-map-note b {
   color: #4e5968;
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .room-admin-map-note small {
   margin-top: 2px;
-  font-size: 8px;
+  font-size: var(--fs-8);
   line-height: 1.45;
 }
 
@@ -5466,7 +5492,7 @@ span {
 .budget-section-heading .eyebrow {
   margin: 0 0 4px;
   color: #6d5bd0;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 800;
   letter-spacing: .12em;
 }
@@ -5481,7 +5507,7 @@ span {
 .budget-admin-intro p:not(.eyebrow) {
   margin: 7px 0 0;
   color: #6b7684;
-  font-size: 10px;
+  font-size: var(--fs-10);
   line-height: 1.45;
 }
 
@@ -5493,7 +5519,7 @@ span {
 
 .budget-admin-intro label span {
   color: #8b95a1;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 700;
 }
 
@@ -5518,7 +5544,7 @@ span {
 .budget-poc-note {
   margin: -5px 2px 12px;
   color: #8b95a1;
-  font-size: 8px;
+  font-size: var(--fs-8);
   line-height: 1.45;
 }
 
@@ -5548,7 +5574,7 @@ span {
 
 .budget-kpi-grid span {
   color: #6b7684;
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .budget-kpi-grid b {
@@ -5565,7 +5591,7 @@ span {
 .budget-kpi-grid small {
   margin-top: auto;
   color: #9aa3ad;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .budget-utilization-card {
@@ -5590,7 +5616,7 @@ span {
 
 .budget-utilization-top small {
   color: rgba(255, 255, 255, .56);
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .budget-utilization-top b {
@@ -5603,7 +5629,7 @@ span {
   border-radius: 9px;
   background: rgba(84, 214, 169, .14);
   color: #75dfbc;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 760;
 }
 
@@ -5643,7 +5669,7 @@ span {
   gap: 10px;
   margin-top: 10px;
   color: rgba(255, 255, 255, .64);
-  font-size: 7px;
+  font-size: var(--fs-7);
 }
 
 .budget-bar-legend span::before {
@@ -5677,7 +5703,7 @@ span {
 .budget-section-heading button,
 .budget-section-heading > span {
   color: #6d5bd0;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 700;
 }
 
@@ -5717,12 +5743,12 @@ span {
 .budget-category-top small {
   margin-top: 2px;
   color: #8b95a1;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .budget-category-top em {
   color: #008c65;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 730;
   white-space: nowrap;
 }
@@ -5747,13 +5773,13 @@ span {
 
 .budget-category-list dt {
   color: #9aa3ad;
-  font-size: 7px;
+  font-size: var(--fs-7);
 }
 
 .budget-category-list dd {
   margin: 0;
   color: #4e5968;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 700;
 }
 
@@ -5767,7 +5793,7 @@ span {
 }
 
 .budget-tab-control button {
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .budget-cost-signal-list {
@@ -5797,7 +5823,7 @@ span {
 
 .budget-cost-signal-top small {
   color: #8b95a1;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .budget-cost-signal-top em {
@@ -5816,7 +5842,7 @@ span {
   display: block;
   margin-top: 2px;
   color: #9aa3ad;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .budget-cost-signal-amounts {
@@ -5833,7 +5859,7 @@ span {
 
 .budget-cost-signal-amounts small {
   color: #9aa3ad;
-  font-size: 9px;
+  font-size: var(--fs-9);
 }
 
 .budget-request-list article {
@@ -5851,7 +5877,7 @@ span {
 
 .budget-request-top > span {
   color: #6d5bd0;
-  font-size: 8px;
+  font-size: var(--fs-8);
   font-weight: 760;
 }
 
@@ -5860,7 +5886,7 @@ span {
   border-radius: 8px;
   background: #fff4d9;
   color: #9a6b12;
-  font-size: 7px;
+  font-size: var(--fs-7);
   font-weight: 740;
 }
 
@@ -5894,7 +5920,7 @@ span {
 
 .budget-request-list p span {
   color: #8b95a1;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .budget-request-list article > button {
@@ -5904,7 +5930,7 @@ span {
   border-radius: 11px;
   background: #f0edff;
   color: #6654c7;
-  font-size: 9px;
+  font-size: var(--fs-9);
   font-weight: 720;
 }
 
@@ -5934,7 +5960,7 @@ span {
 
 .budget-integration-card > div small {
   color: #6d5bd0;
-  font-size: 7px;
+  font-size: var(--fs-7);
   font-weight: 800;
   letter-spacing: .09em;
 }
@@ -5942,13 +5968,13 @@ span {
 .budget-integration-card > div b {
   display: block;
   margin-top: 2px;
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .budget-integration-card > div p {
   margin: 5px 0 0;
   color: #6b7684;
-  font-size: 8px;
+  font-size: var(--fs-8);
   line-height: 1.5;
 }
 
@@ -5970,12 +5996,12 @@ span {
   padding: 0 11px;
   border-bottom: 1px solid #eef0f2;
   color: #4e5968;
-  font-size: 8px;
+  font-size: var(--fs-8);
 }
 
 .budget-integration-card li:last-child { border-bottom: 0; }
 .budget-integration-card li svg { width: 15px; height: 15px; color: #00a176; }
-.budget-integration-card li em { color: #8b95a1; font-size: 7px; }
+.budget-integration-card li em { color: #8b95a1; font-size: var(--fs-7); }
 
 .budget-empty-state {
   margin-top: 13px;
@@ -5998,8 +6024,8 @@ span {
 }
 
 .budget-empty-state h2 { margin: 0; font-size: 17px; }
-.budget-empty-state p { margin: 8px 0 0; color: #6b7684; font-size: 9px; line-height: 1.5; }
-.budget-empty-state button { width: 100%; min-height: 42px; margin-top: 16px; border-radius: 12px; background: #6d5bd0; color: #fff; font-size: 10px; font-weight: 730; }
+.budget-empty-state p { margin: 8px 0 0; color: #6b7684; font-size: var(--fs-9); line-height: 1.5; }
+.budget-empty-state button { width: 100%; min-height: 42px; margin-top: 16px; border-radius: 12px; background: #6d5bd0; color: #fff; font-size: var(--fs-10); font-weight: 730; }
 
 /* Admin Control Tower: exception center */
 
@@ -6082,7 +6108,7 @@ span {
 
 .exception-card-top span {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 750;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -6093,7 +6119,7 @@ span {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.12);
   color: #ffb37a;
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 730;
 }
 
@@ -6107,7 +6133,7 @@ span {
 .exception-card > p {
   margin: 4px 0 0;
   color: rgba(255, 255, 255, 0.55);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .exception-owner {
@@ -6119,11 +6145,11 @@ span {
 
 .exception-owner small {
   color: rgba(255, 255, 255, 0.5);
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .exception-owner b {
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 700;
 }
 
@@ -6153,7 +6179,7 @@ span {
   border-radius: 10px;
   background: #eef1f4;
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 700;
 }
 
@@ -6197,7 +6223,7 @@ span {
 .admin-module-tile small {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 /* Case pipeline (shared by Today Work Queue and OA admin) */
@@ -6238,7 +6264,7 @@ span {
 
 .oa-case-top > span:first-child {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-weight: 700;
 }
 
@@ -6254,7 +6280,7 @@ span {
 .oa-case-card > p {
   margin: 3px 0 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .queue-case-location {
@@ -6315,7 +6341,7 @@ span {
   overflow: hidden;
   max-width: 100%;
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--fs-9);
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6343,7 +6369,7 @@ span {
 .oa-case-assignment small {
   display: block;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .oa-case-assignment b {
@@ -6387,7 +6413,7 @@ span {
 .oa-admin-intro .eyebrow {
   margin: 0 0 4px;
   color: var(--primary);
-  font-size: 10px;
+  font-size: var(--fs-10);
   font-weight: 800;
   letter-spacing: 0.1em;
 }
@@ -6425,7 +6451,7 @@ span {
 .oa-boundary-note p {
   margin: 4px 0 0;
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
   line-height: 1.45;
 }
 
@@ -6448,13 +6474,13 @@ span {
 .data-foundation-card > p {
   margin: 14px 0 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
   line-height: 1.5;
 }
 
 .data-foundation-card .section-heading small {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .data-foundation-grid {
@@ -6480,7 +6506,7 @@ span {
 
 .data-foundation-item span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .ops-readiness-note {
@@ -6499,7 +6525,7 @@ span {
 .ops-readiness-note p {
   margin: 5px 0 0;
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
   line-height: 1.5;
 }
 
@@ -6554,7 +6580,7 @@ span {
 .people-row-copy small {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
 }
 
 .people-detail-card {
@@ -6577,7 +6603,7 @@ span {
 
 .people-detail-head small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .people-detail-head b {
@@ -6589,7 +6615,7 @@ span {
 .people-detail-head em {
   margin-top: 2px;
   color: var(--subtext);
-  font-size: 11px;
+  font-size: var(--fs-11);
   font-style: normal;
 }
 
@@ -6602,7 +6628,7 @@ span {
 
 .people-detail-grid dt {
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--fs-10);
 }
 
 .people-detail-grid dd {
@@ -6617,7 +6643,7 @@ span {
   border-radius: 14px;
   background: #f7f8fa;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-11);
   line-height: 1.5;
 }
 
@@ -6874,13 +6900,13 @@ span {
   .nav-brand small {
     margin-top: 1px;
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--fs-11);
   }
 
   .nav-group-label {
     margin: 14px 10px 6px;
     color: var(--muted);
-    font-size: 10px;
+    font-size: var(--fs-10);
     font-weight: 750;
     letter-spacing: 0.1em;
   }
@@ -6899,7 +6925,7 @@ span {
     margin-top: 1px;
     overflow: hidden;
     color: var(--muted);
-    font-size: 10px;
+    font-size: var(--fs-10);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -6943,7 +6969,7 @@ span {
   .nav-profile small {
     overflow: hidden;
     color: var(--muted);
-    font-size: 10px;
+    font-size: var(--fs-10);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -6951,7 +6977,7 @@ span {
   .nav-profile em {
     margin-top: 3px;
     color: #008f65;
-    font-size: 10px;
+    font-size: var(--fs-10);
     font-weight: 700;
   }
 
@@ -7293,6 +7319,304 @@ span {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: start;
     gap: 20px;
+  }
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Desktop: match the internal consoles this portal sits beside
+ * ---------------------------------------------------------------------------
+ *
+ * Reference screens: payments internal (전체 서비스), finance internal,
+ * the internal portal home, and 조직도. What they share, and what this app was
+ * not doing:
+ *
+ *   1. A white canvas. Cards are separated by a hairline border, not by sitting
+ *      on a grey field. Our cards already carry that border, so this is only a
+ *      canvas change — but it is the difference between reading as a phone app
+ *      blown up and reading as a web console.
+ *   2. Smallest text at 12–13px, never 8px.
+ *   3. One page title per screen, large (32–48px), left-aligned, with a grey
+ *      subtitle. No centred title bar and no back chevron — the sidebar is the
+ *      navigation, so the strip above the title carries a breadcrumb instead.
+ *   4. Generous, quiet spacing rather than tinted fills.
+ *
+ * Mobile is untouched: everything here is behind the desktop breakpoint.
+ */
+@media (min-width: 1024px) {
+  :root {
+    --fs-7: 12px;
+    --fs-8: 12px;
+    --fs-9: 12.5px;
+    --fs-10: 13px;
+    --fs-11: 13px;
+  }
+
+  html,
+  body,
+  .mobile-app-shell {
+    background: #fff;
+  }
+
+  /* On grey, a translucent border was enough. On white it disappears, and the
+     hairline is now the only thing separating a card from the canvas. */
+  .card,
+  .service-tile,
+  .quick-action-tile,
+  .admin-module-tile,
+  .people-row,
+  .oa-case-card,
+  .catalog-service-card,
+  .compact-request {
+    border-color: var(--line);
+  }
+
+  /*
+   * The title strip. The mobile app bar centres the screen title next to a back
+   * chevron; on desktop both are wrong — the title duplicates the large heading
+   * in the content, and the rail already says where you are. So the strip
+   * becomes a breadcrumb: quiet, left-aligned, no chrome.
+   */
+  .top-header,
+  .top-header-title {
+    position: static;
+    display: flex;
+    height: auto;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 26px 40px 0;
+    border-bottom: 0;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .top-header .brand-mark,
+  .top-header .brand-mini,
+  .top-header [aria-label="뒤로 가기"] {
+    display: none;
+  }
+
+  .top-header-title h1 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-align: left;
+    color: var(--text);
+  }
+
+  .top-crumb {
+    display: inline flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .top-crumb::after {
+    color: #c9d0d8;
+    content: "/";
+  }
+
+  .top-header .notification-button {
+    margin-left: auto;
+  }
+
+  /* The page heading. 22–25px on a 1584px canvas reads as a section label; the
+     reference consoles run 32–48px here. */
+  .ops-intro h1,
+  .seat-intro h1,
+  .seat-workday-hero h1,
+  .seat-admin-intro h1,
+  .room-intro h1,
+  .budget-admin-intro h1,
+  .oa-admin-intro h1,
+  .screen-title h1 {
+    font-size: 34px;
+    letter-spacing: -0.035em;
+    line-height: 1.22;
+  }
+
+  .ops-intro p:not(.eyebrow),
+  .budget-admin-intro p:not(.eyebrow),
+  .oa-admin-intro p,
+  .screen-title p {
+    font-size: 15px;
+  }
+
+  .ops-intro,
+  .seat-intro,
+  .seat-workday-hero,
+  .seat-admin-intro,
+  .room-intro,
+  .budget-admin-intro,
+  .people-directory-screen .oa-admin-intro,
+  .screen-title {
+    padding-top: 10px;
+    padding-bottom: 26px;
+  }
+
+  /* Screens whose only heading used to be the app-bar title now carry their own,
+     so every screen has a page title like the reference does. */
+  .screen-title {
+    display: block;
+  }
+
+  .screen-title h1 {
+    margin: 0;
+    font-weight: 800;
+  }
+
+  .screen-title p {
+    margin: 8px 0 0;
+    color: var(--subtext);
+  }
+
+  /* Search: the reference inputs are tall, bordered and stop short of the full
+     width instead of stretching across the canvas. */
+  .search-field,
+  .seat-search,
+  .smart-search-field {
+    max-width: 560px;
+    min-height: 56px;
+    border-color: var(--line);
+    border-radius: 14px;
+  }
+
+  .search-field input,
+  .seat-search input,
+  .smart-search-field input {
+    font-size: 15px;
+  }
+
+  /* Icon tiles sit at 48–56px in the reference; ours were sized for a phone. */
+  .service-tile-icon,
+  .quick-action-tile > span:first-child,
+  .admin-module-tile > span:first-child {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
+
+  /*
+   * The in-progress banner. A saturated full-bleed gradient bar is a phone
+   * pattern; across 1300px it becomes the loudest thing on the page and none of
+   * the reference consoles use a filled accent band. Same card, same content,
+   * tinted instead of filled — the blue now marks the link rather than shouting.
+   */
+  .active-summary {
+    border: 1px solid #cfe0fb;
+    background: #f4f8ff;
+    box-shadow: none;
+    color: var(--primary);
+  }
+
+  .active-summary small {
+    color: var(--subtext);
+  }
+
+  .active-summary-icon {
+    background: #e3edfd;
+  }
+
+  /* The Korean heading should carry the section; the English label above it is a
+     category cue, so it steps back rather than competing. */
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #a3adb8;
+  }
+
+  /*
+   * Scope notes. Several admin screens open with two of these stacked, which on
+   * a wide canvas means two full-width bands of one sentence each before any
+   * data appears. Laying the label beside its text halves the height without
+   * dropping anything the note says.
+   */
+  .oa-boundary-note {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 12px 18px;
+  }
+
+  .oa-boundary-note b {
+    flex: none;
+  }
+
+  .oa-boundary-note p {
+    margin: 0;
+  }
+
+  /*
+   * Category switch. The full-width treatment was scoped to ≤520px, so on
+   * desktop this stayed at the 74px phone width and clipped its own value —
+   * "시설·환경" rendered as "시설·". Sized to its content instead.
+   */
+  .service-switch,
+  .service-switch select {
+    width: auto;
+    min-width: 152px;
+  }
+
+  .service-switch select {
+    height: 40px;
+    padding: 0 34px 0 13px;
+    font-size: 14px;
+    text-align: left;
+  }
+
+  .service-switch svg {
+    right: 12px;
+  }
+
+  /*
+   * The supporting pane shares row 1 with the category card, and a stretched
+   * row made the card grow to the pane's height — a 190px box holding one line.
+   * Rows size to their own content now.
+   */
+  .request-screen .catalog-form {
+    align-items: start;
+  }
+
+  /*
+   * Category tiles. Six fixed columns put each tile at 107px on a 1024px
+   * window, which truncated its own subtitle ("좌석 75석 · 회의실 16개").
+   * The reference service list runs two wide columns rather than a row of
+   * narrow squares, so size by a minimum tile width and let the count fall out
+   * of the space available — three columns at 1024, six on a wide monitor.
+   */
+  .home-screen .service-grid {
+    grid-template-columns: repeat(auto-fit, minmax(184px, 1fr));
+    gap: 12px;
+  }
+
+  /*
+   * Case meta lines carry the request number. Ellipsising an identifier hides
+   * the one part of the line the reader needs, so these wrap instead.
+   */
+  .queue-case-card > p,
+  .oa-case-card > p {
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+  }
+
+  /*
+   * Pipeline step captions. Two case columns put each step in a 76px slot, and
+   * "REQ-20260818-024" needs about 114px — the request number was being
+   * ellipsised down to "REQ-2026…". Wrapping keeps the identifier whole; the
+   * steps are already centred, so a second line costs nothing but height.
+   */
+  .oa-pipeline-step small {
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+    word-break: break-all;
+    line-height: 1.35;
   }
 }
 

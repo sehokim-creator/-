@@ -6029,7 +6029,11 @@ span {
 }
 
 .exception-filter-tabs {
-  margin-top: 12px;
+  /* .filter-tabs bleeds -20px sideways so the row can reach the screen edge;
+     inside this padded card that pushed it past the rounded corners */
+  margin: 12px 0 0;
+  padding-right: 0;
+  padding-left: 0;
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -7175,8 +7179,11 @@ span {
  * where the content area is still >= 1056px.
  */
 @media (min-width: 1312px) {
-  .seat-screen,
-  .seat-screen.has-seat-selection {
+  /* employee seat screen only: the admin and room screens reuse .seat-screen
+     but have different children, and a 12-column grid squeezed them into
+     100px strips */
+  .seat-screen:not(.seat-admin-screen):not(.room-screen),
+  .seat-screen.has-seat-selection:not(.seat-admin-screen):not(.room-screen) {
     display: grid;
     align-content: start;
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -7185,48 +7192,48 @@ span {
   }
 
   /* full-bleed rows */
-  .seat-screen > .seat-workday-hero,
-  .seat-screen > .seat-section-heading,
-  .seat-screen > .seat-legend,
-  .seat-screen > .seat-poc-note,
-  .seat-screen > .location-setup-state {
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .seat-workday-hero,
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .seat-section-heading,
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .seat-legend,
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .seat-poc-note,
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .location-setup-state {
     grid-column: 1 / -1;
   }
 
   /* floor tabs and the search/filter row share one line so the plan is not
      pushed below the fold by five stacked control rows */
-  .seat-screen > .floor-picker-wrap {
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .floor-picker-wrap {
     grid-column: span 4;
     margin: 0;
   }
 
-  .seat-screen > .seat-tools {
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .seat-tools {
     grid-column: span 8;
     margin: 0;
   }
 
   /* context cards share one row instead of stacking full width */
-  .seat-screen > .building-picker-card,
-  .seat-screen > .seat-operation-summary,
-  .seat-screen > .my-space-cards {
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .building-picker-card,
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .seat-operation-summary,
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .my-space-cards {
     grid-column: span 4;
     margin: 0;
   }
 
-  .seat-screen > .my-space-cards {
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .my-space-cards {
     display: grid;
     gap: 10px;
   }
 
   /* list-detail: the floor plan is the flexible detail pane, the selected
      seat is the fixed supporting pane */
-  .seat-screen > .seat-map-section {
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .seat-map-section {
     grid-column: span 8;
     margin: 0;
   }
 
-  .seat-screen > .seat-detail-card,
-  .seat-screen > .seat-select-guide {
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .seat-detail-card,
+  .seat-screen:not(.seat-admin-screen):not(.room-screen) > .seat-select-guide {
     position: sticky;
     top: 90px;
     align-self: start;
@@ -7237,6 +7244,18 @@ span {
   /* let the plan use the pane instead of scrolling inside a narrow strip */
   .seat-map-scroll {
     max-height: none;
+  }
+
+  /*
+   * The seat list holds ~180 rows. On mobile a 430px window is right, but on a
+   * desktop pane it turns a 12,000px list into a peephole while the page around
+   * it has room to spare. Grow with the viewport instead — the list-detail
+   * pattern Robin and Freshservice both use keeps the list full-height and
+   * scrolls it in place, so the detail pane never moves.
+   */
+  .seat-list-view {
+    max-height: calc(100vh - 280px);
+    min-height: 430px;
   }
 }
 

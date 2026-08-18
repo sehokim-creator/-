@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { RoomAdminPanel, RoomEmployeePanel } from "./room-management";
 import type { RoomBookingPayload, RoomRecord } from "./room-management";
@@ -420,6 +420,16 @@ function SeatMap({ buildingId, floorId, seats, policies, reservations, date, sel
   const [zoom, setZoom] = useState(0.46);
   const [viewMode, setViewMode] = useState<SeatViewMode>("map");
   const [wingView, setWingView] = useState<WingView>("all");
+
+  // 0.46 fits the 900px plan on a phone; on a desktop pane that leaves a 414px
+  // drawing in a full-width card. Set from the client after mount so the
+  // server-rendered markup stays identical.
+  useEffect(() => {
+    const fit = (query: string, value: number) => window.matchMedia(query).matches && (setZoom(value), true);
+    // tiers follow the pane width the map gets at each breakpoint, so the
+    // 900px plan fills it without overflowing into a scroll
+    fit("(min-width: 1600px)", 1) || fit("(min-width: 1312px)", 0.8) || fit("(min-width: 1024px)", 0.7);
+  }, []);
   const floor = floorDefinitions.find((item) => item.buildingId === buildingId && item.id === floorId) ?? floorDefinitions[0];
   const normalizedQuery = query.trim().toLocaleLowerCase("ko-KR");
   const activeWing: WingView = floor.wings.length === 1 ? "north" : wingView;

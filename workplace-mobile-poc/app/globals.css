@@ -6540,7 +6540,7 @@ span {
     width: auto;
     max-width: none;
     min-height: 100vh;
-    margin: 0 0 0 240px;
+    margin: 0 0 0 256px;
     border-radius: 0;
     box-shadow: none;
   }
@@ -6551,7 +6551,7 @@ span {
     right: auto;
     bottom: 0;
     left: 0;
-    width: 240px;
+    width: 256px;
     height: 100%;
     align-content: start;
     grid-template-columns: 1fr;
@@ -6664,7 +6664,7 @@ span {
 
   .toast {
     bottom: 32px;
-    left: calc(240px + (100% - 240px) / 2);
+    left: calc(256px + (100% - 256px) / 2);
   }
 }
 
@@ -6675,7 +6675,7 @@ span {
  */
 @media (min-width: 1024px) {
   .screen {
-    max-width: 1440px;
+    max-width: 1584px;
     padding: 24px 40px 56px;
   }
 
@@ -6747,6 +6747,109 @@ span {
   .room-list,
   .budget-category-list {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/*
+ * Seat/space screen on desktop. References: Material 3 canonical
+ * "list-detail" layout (detail pane flexible, supporting pane fixed) and its
+ * breakpoints — expanded 840, large 1200, extra-large 1600; IBM Carbon's 2x
+ * grid, whose side nav is a "grid influencer" outside the grid and whose
+ * content should not drop below 1056px. The rail is 256px and the grid caps
+ * at Carbon's 1584px, so the two-pane split starts at 1312px (Carbon xlg),
+ * where the content area is still >= 1056px.
+ */
+@media (min-width: 1312px) {
+  .seat-screen,
+  .seat-screen.has-seat-selection {
+    display: grid;
+    align-content: start;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 20px;
+    row-gap: 18px;
+  }
+
+  /* full-bleed rows */
+  .seat-screen > .seat-workday-hero,
+  .seat-screen > .seat-section-heading,
+  .seat-screen > .seat-legend,
+  .seat-screen > .seat-poc-note,
+  .seat-screen > .location-setup-state {
+    grid-column: 1 / -1;
+  }
+
+  /* floor tabs and the search/filter row share one line so the plan is not
+     pushed below the fold by five stacked control rows */
+  .seat-screen > .floor-picker-wrap {
+    grid-column: span 4;
+    margin: 0;
+  }
+
+  .seat-screen > .seat-tools {
+    grid-column: span 8;
+    margin: 0;
+  }
+
+  /* context cards share one row instead of stacking full width */
+  .seat-screen > .building-picker-card,
+  .seat-screen > .seat-operation-summary,
+  .seat-screen > .my-space-cards {
+    grid-column: span 4;
+    margin: 0;
+  }
+
+  .seat-screen > .my-space-cards {
+    display: grid;
+    gap: 10px;
+  }
+
+  /* list-detail: the floor plan is the flexible detail pane, the selected
+     seat is the fixed supporting pane */
+  .seat-screen > .seat-map-section {
+    grid-column: span 8;
+    margin: 0;
+  }
+
+  .seat-screen > .seat-detail-card,
+  .seat-screen > .seat-select-guide {
+    position: sticky;
+    top: 90px;
+    align-self: start;
+    grid-column: span 4;
+    margin: 0;
+  }
+
+  /* let the plan use the pane instead of scrolling inside a narrow strip */
+  .seat-map-scroll {
+    max-height: none;
+  }
+}
+
+/*
+ * Request form on desktop. Form fields keep a readable measure, and the
+ * expected-workflow card moves beside them as a Material 3 "supporting pane"
+ * instead of leaving the right half of the screen empty.
+ */
+@media (min-width: 1312px) {
+  .request-screen .catalog-form {
+    display: grid;
+    align-content: start;
+    grid-template-columns: minmax(0, 760px) minmax(280px, 340px);
+    max-width: 1140px;
+    column-gap: 24px;
+  }
+
+  .request-screen .catalog-form > * {
+    grid-column: 1;
+  }
+
+  .request-screen .catalog-form > .workflow-preview {
+    position: sticky;
+    top: 90px;
+    align-self: start;
+    grid-row: 1;
+    grid-column: 2;
+    margin: 0;
   }
 }
 

@@ -746,7 +746,7 @@ export function SeatEmployeeScreen({ seats, policies, reservations, buildingId, 
   return (
     <main className={`screen seat-screen${selectedSeat ? " has-seat-selection" : ""}`}>
       <section className="seat-workday-hero">
-        <div><p className="eyebrow">WORKPLACE</p><h1>내 자리 찾기</h1><p>건물과 날짜, 층을 선택한 뒤 도면에서 좌석을 확인하세요.</p></div>
+        <div><h1>내 자리 찾기</h1><p>건물과 날짜, 층을 선택한 뒤 도면에서 좌석을 확인하세요.</p></div>
         <label><span>이용일</span><input type="date" min="2026-08-18" value={date} onChange={(event) => { setDate(event.target.value); setSelectedSeatId(undefined); }} /></label>
       </section>
 
@@ -777,7 +777,7 @@ export function SeatEmployeeScreen({ seats, policies, reservations, buildingId, 
         </div>
 
         <section className="seat-section-heading">
-          <div><p className="eyebrow">FIND A SEAT</p><h2>도면에서 좌석 선택</h2></div>
+          <div><h2>도면에서 좌석 선택</h2></div>
           <span><b>{floorTotals.available}</b>석 이용 가능</span>
         </section>
         <FloorPicker buildingId={buildingId} selected={floorId} seats={buildingSeats} policies={policies} reservations={reservations} date={date} onChange={changeFloor} />
@@ -968,7 +968,7 @@ export function SeatAdminScreen({ seats, policies, reservations, buildingId, onB
   return (
     <main className={`screen seat-screen seat-admin-screen${selectedSeat ? " has-seat-selection" : ""}`}>
       <section className="seat-admin-intro">
-        <div><p className="eyebrow">SEAT ADMIN</p><h1>좌석 정책·운영 관리</h1><p>구역별 운영방식을 정하고 고정석 배정과 공유좌석 예약을 함께 관리합니다.</p></div>
+        <div><h1>좌석 정책·운영 관리</h1><p>구역별 운영방식을 정하고 고정석 배정과 공유좌석 예약을 함께 관리합니다.</p></div>
         <span>POC</span>
       </section>
 
@@ -1000,7 +1000,7 @@ export function SeatAdminScreen({ seats, policies, reservations, buildingId, onB
       {movingSeat && <div className="seat-move-banner"><span><b>{movingSeat.assignedTo}님 고정좌석 이동 중</b><small>도면에서 이동할 빈 고정석을 선택하세요.</small></span><button onClick={() => setMovingSeatId(undefined)}>취소</button></div>}
 
       <section className="seat-section-heading admin-map-heading">
-        <div><p className="eyebrow">FLOOR CONTROL</p><h2>도면에서 직접 관리</h2></div>
+        <div><h2>도면에서 직접 관리</h2></div>
         <span><b>{floorTotals.available}</b>석 이용 가능</span>
       </section>
       <SeatSearchAndFilter query={query} onQuery={setQuery} filter={filter} onFilter={setFilter} modeFilter={modeFilter} onModeFilter={setModeFilter} equipmentFilter={equipmentFilter} onEquipmentFilter={setEquipmentFilter} />

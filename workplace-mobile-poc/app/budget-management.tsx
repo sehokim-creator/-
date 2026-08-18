@@ -79,7 +79,7 @@ export function BudgetAdminScreen() {
   return (
     <main className="screen budget-admin-screen">
       <section className="budget-admin-intro">
-        <div><p className="eyebrow">COST &amp; CONTRACT</p><h1>비용·계약 관리</h1><p>업무 요청·예산·집행·계약 갱신을 연결하되 회계 원장은 ERP에 유지합니다.</p></div>
+        <div><h1>비용·계약 관리</h1><p>업무 요청·예산·집행·계약 갱신을 연결하되 회계 원장은 ERP에 유지합니다.</p></div>
         <label><span>회계연도</span><select value={year} onChange={(event) => setYear(event.target.value)}><option>2026</option><option>2025</option></select></label>
       </section>
 
@@ -118,7 +118,7 @@ export function BudgetAdminScreen() {
           <div className="budget-bar-legend"><span className="actual">실제 집행 {actualRate}%</span><span className="commit">발주·약정 {exposureRate - actualRate}%</span><span className="remain">잔여 {100 - exposureRate}%</span></div>
         </section>
 
-        <section className="budget-section-heading"><div><p className="eyebrow">COST SIGNAL</p><h2>비용 이상 신호</h2></div><span>{costSignals.length}개</span></section>
+        <section className="budget-section-heading"><div><h2>비용 이상 신호</h2></div><span>{costSignals.length}개</span></section>
         <div className="budget-cost-signal-list">
           {costSignals.map((signal) => (
             <article key={signal.id} className={`budget-cost-signal-card${signal.notable ? " notable" : ""}`}>
@@ -130,7 +130,7 @@ export function BudgetAdminScreen() {
           ))}
         </div>
 
-        <section className="budget-section-heading"><div><p className="eyebrow">BY CATEGORY</p><h2>항목별 예산 현황</h2></div><button>상세 보고서</button></section>
+        <section className="budget-section-heading"><div><h2>항목별 예산 현황</h2></div><button>상세 보고서</button></section>
         <div className="budget-category-list">
           {categories.map((item) => {
             const used = Math.round((item.actual / item.budget) * 100);
@@ -144,7 +144,7 @@ export function BudgetAdminScreen() {
           })}
         </div>
 
-        <section className="budget-section-heading request-heading"><div><p className="eyebrow">CONNECTED REQUESTS</p><h2>예산 검토 업무</h2></div><span>{budgetRequests.length}건</span></section>
+        <section className="budget-section-heading request-heading"><div><h2>예산 검토 업무</h2></div><span>{budgetRequests.length}건</span></section>
         <div className="budget-request-list">
           {budgetRequests.map((request) => <article key={request.id}>
             <div className="budget-request-top"><span>{request.type}</span><em className={budgetRequestTone(request.status)}>{request.status}</em></div>

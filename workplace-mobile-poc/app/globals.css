@@ -5594,12 +5594,15 @@ span {
   font-size: var(--fs-8);
 }
 
+/* Same call as the action centre: light, with the bar colours carrying the
+   reading instead of an inverted fill. */
 .budget-utilization-card {
   margin-top: 10px;
   padding: 15px;
+  border: 1px solid var(--line);
   border-radius: 20px;
-  background: #272f3b;
-  color: #fff;
+  background: #f7f8fa;
+  color: var(--text);
 }
 
 .budget-utilization-top {
@@ -5615,7 +5618,7 @@ span {
 }
 
 .budget-utilization-top small {
-  color: rgba(255, 255, 255, .56);
+  color: var(--muted);
   font-size: var(--fs-8);
 }
 
@@ -5627,8 +5630,8 @@ span {
 .budget-utilization-top em {
   padding: 6px 8px;
   border-radius: 9px;
-  background: rgba(84, 214, 169, .14);
-  color: #75dfbc;
+  background: #e0f6ee;
+  color: #00845f;
   font-size: var(--fs-8);
   font-weight: 760;
 }
@@ -5640,7 +5643,7 @@ span {
   height: 9px;
   margin-top: 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .14);
+  background: #e6e9ee;
 }
 
 .budget-master-bar span,
@@ -5668,7 +5671,7 @@ span {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 10px;
-  color: rgba(255, 255, 255, .64);
+  color: var(--subtext);
   font-size: var(--fs-7);
 }
 
@@ -5683,7 +5686,7 @@ span {
 }
 
 .budget-bar-legend .commit::before { background: #b9a9ff; }
-.budget-bar-legend .remain::before { background: rgba(255, 255, 255, .2); }
+.budget-bar-legend .remain::before { background: #ccd2da; }
 
 .budget-section-heading {
   display: flex;
@@ -6029,27 +6032,32 @@ span {
 
 /* Admin Control Tower: exception center */
 
+/*
+ * Action centre. This was a dark slab — the only inverted surface in the app,
+ * which read as a different product beside the internal consoles, all four of
+ * which are uniformly light. The urgency signal never came from the dark fill:
+ * it comes from the coloured left border on each card, which is untouched. A
+ * quiet tinted panel keeps the "act on these first" grouping without inverting.
+ */
 .exception-center {
   margin-top: 18px;
   padding: 18px 16px;
+  border: 1px solid var(--line);
   border-radius: 24px;
-  background: #1a2028;
-  color: #fff;
+  background: #f7f8fa;
+  color: var(--text);
 }
 
-.exception-center-heading .eyebrow {
-  color: #6fe3b4;
-}
 
 .exception-center-heading h2 {
   margin: 4px 0 0;
-  color: #fff;
+  color: var(--text);
   font-size: 18px;
   font-weight: 780;
 }
 
 .exception-center-heading > span {
-  color: #fff;
+  color: var(--text);
   font-size: 14px;
   font-weight: 780;
 }
@@ -6060,16 +6068,17 @@ span {
   margin: 12px 0 0;
   padding-right: 0;
   padding-left: 0;
-  background: rgba(255, 255, 255, 0.08);
+  background: #eceff3;
 }
 
 .exception-filter-tabs button {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--subtext);
 }
 
 .exception-filter-tabs button.selected {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(25, 31, 40, 0.1);
+  color: var(--text);
 }
 
 .exception-list {
@@ -6081,9 +6090,10 @@ span {
 
 .exception-card {
   padding: 14px 14px 14px 16px;
-  border-left: 3px solid #5b6472;
+  border: 1px solid var(--line);
+  border-left: 3px solid #8b95a1;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.06);
+  background: #fff;
 }
 
 .exception-card.exception-SLA,
@@ -6107,7 +6117,7 @@ span {
 }
 
 .exception-card-top span {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--muted);
   font-size: var(--fs-10);
   font-weight: 750;
   letter-spacing: 0.04em;
@@ -6117,8 +6127,8 @@ span {
 .exception-card-top em {
   padding: 3px 8px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffb37a;
+  background: #fff2e3;
+  color: #b3641c;
   font-size: var(--fs-11);
   font-weight: 730;
 }
@@ -6132,7 +6142,7 @@ span {
 
 .exception-card > p {
   margin: 4px 0 0;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--muted);
   font-size: var(--fs-11);
 }
 
@@ -6144,7 +6154,7 @@ span {
 }
 
 .exception-owner small {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--muted);
   font-size: var(--fs-10);
 }
 
@@ -6162,8 +6172,9 @@ span {
   margin-top: 11px;
   padding: 0 12px;
   border-radius: 11px;
-  background: #fff;
-  color: #1a2028;
+  border: 1px solid var(--line);
+  background: #f7f8fa;
+  color: var(--text);
   font-size: 12px;
   font-weight: 730;
 }
@@ -7521,13 +7532,14 @@ span {
     background: #e3edfd;
   }
 
-  /* The Korean heading should carry the section; the English label above it is a
-     category cue, so it steps back rather than competing. */
+  /* Only two of these are left — the ops date and the room-finder floor scope —
+     and both are information rather than decoration, so they read at meta
+     weight instead of being pushed into the background. */
   .eyebrow {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    color: #a3adb8;
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: 0;
+    color: var(--muted);
   }
 
   /*

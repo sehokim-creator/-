@@ -65,7 +65,7 @@ export function OaAdminScreen({ requests, onAdvance }: { requests: RequestItem[]
   return (
     <main className="screen oa-admin-screen">
       <section className="oa-admin-intro">
-        <div><p className="eyebrow">OA REQUEST WORKFLOW</p><h1>OA 신청·반납 업무</h1><p>Workplace Portal에서는 신청 접수, 승인, OA 처리, 반납 완료 상태만 운영합니다.</p></div>
+        <div><h1>OA 신청·반납 업무</h1><p>Workplace Portal에서는 신청 접수, 승인, OA 처리, 반납 완료 상태만 운영합니다.</p></div>
         <span className="tag-positive">AMS 연동</span>
       </section>
 

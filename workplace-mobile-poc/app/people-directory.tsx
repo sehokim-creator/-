@@ -55,7 +55,7 @@ export function PeopleDirectoryScreen() {
   return (
     <main className="screen people-directory-screen">
       <section className="oa-admin-intro">
-        <div><p className="eyebrow">구성원 지원 현황</p><h1>한 사람의 Workplace 업무를 한눈에</h1><p>구성원 한 명을 기준으로 근무지·좌석·출입·주차·OA 현황·요청을 연결해 확인하는 관리자 조회 화면입니다.</p></div>
+        <div><h1>한 사람의 Workplace 업무를 한눈에</h1><p>구성원 한 명을 기준으로 근무지·좌석·출입·주차·OA 현황·요청을 연결해 확인하는 관리자 조회 화면입니다.</p></div>
         <span className="tag-positive">통합 조회</span>
       </section>
 
@@ -122,7 +122,7 @@ export function DataFoundationCard() {
   ];
   return (
     <section className="card data-foundation-card">
-      <div className="section-heading"><div><p className="eyebrow">DATA FOUNDATION</p><h2>Sheet가 아닌 공통 데이터로 연결</h2></div><small>17개 Sheet → 10개 도메인</small></div>
+      <div className="section-heading"><div><h2>Sheet가 아닌 공통 데이터로 연결</h2></div><small>17개 Sheet → 10개 도메인</small></div>
       <div className="data-foundation-grid">
         {domains.map((domain) => (
           <div className="data-foundation-item" key={domain.name}><b>{domain.name}</b><span>{domain.sources}개 원본</span></div>

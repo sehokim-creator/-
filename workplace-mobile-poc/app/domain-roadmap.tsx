@@ -21,7 +21,6 @@ export type DomainKey =
   | "approval";
 
 type DomainPlan = {
-  eyebrow: string;
   title: string;
   summary: string;
   reference: string;
@@ -33,7 +32,6 @@ type DomainPlan = {
 
 export const domainPlans: Record<DomainKey, DomainPlan> = {
   access: {
-    eyebrow: "ACCESS & SECURITY",
     title: "출입·보안 관리",
     summary: "외부인 출입카드 대장과 지문 등록·회수를 사람과 기간 기준으로 관리합니다.",
     reference: "Envoy 방문자·현장 경험 / ServiceNow WSD Visitor Management",
@@ -52,7 +50,6 @@ export const domainPlans: Record<DomainKey, DomainPlan> = {
     depends: "방문·출입 도메인, 구성원 도메인",
   },
   parking: {
-    eyebrow: "PARKING",
     title: "주차 관리",
     summary: "정기주차권 입차율과 주차 대기열을 함께 보고 배정 순번을 관리합니다.",
     reference: "Robin 이용률 Analytics / WSD Reservation Management(주차)",
@@ -69,7 +66,6 @@ export const domainPlans: Record<DomainKey, DomainPlan> = {
     depends: "예약 도메인, 구성원 도메인",
   },
   welfare: {
-    eyebrow: "WELFARE & SUPPLIES",
     title: "복리후생·물품 운영",
     summary: "편의점·경조사·육아용품·도서공간처럼 신청과 비용이 함께 움직이는 운영 업무입니다.",
     reference: "Freshservice Service Catalog / WSD Case Management",
@@ -90,7 +86,6 @@ export const domainPlans: Record<DomainKey, DomainPlan> = {
     depends: "요청·Case 도메인, 물품 재고 도메인, 비용 도메인",
   },
   asset: {
-    eyebrow: "ASSET & RENTAL",
     title: "자산·렌탈 관리",
     summary: "렌탈 기기와 지급 자산의 위치·계약 주기를 관리합니다. 자산 원장은 AMS가 계속 소유합니다.",
     reference: "ServiceNow WSD Maintenance Management / OnSpace 공간 정책",
@@ -108,7 +103,6 @@ export const domainPlans: Record<DomainKey, DomainPlan> = {
     depends: "OA 현황(AMS) 도메인, 건물·층 도메인, 계약 도메인",
   },
   license: {
-    eyebrow: "SOFTWARE & LICENSE",
     title: "SW·라이선스 관리",
     summary: "SaaS 좌석 수와 라이선스 갱신·단가 변동을 한 화면에서 봅니다.",
     reference: "SaaS Management(SAM) / WSD Lease Administration의 갱신 모델",
@@ -126,7 +120,6 @@ export const domainPlans: Record<DomainKey, DomainPlan> = {
     depends: "계약 도메인, 비용 도메인, 구성원 도메인",
   },
   approval: {
-    eyebrow: "APPROVAL MATRIX",
     title: "승인·전결 기준",
     summary: "요청 금액과 유형에 따른 전결 단계를 마스터로 관리해 화면의 승인 단계를 여기서 결정합니다.",
     reference: "Freshservice Approval Workflow / WSD Case Management",
@@ -151,7 +144,7 @@ export function DomainRoadmapScreen({ domain }: { domain: DomainKey }) {
     <main className="screen domain-roadmap-screen">
       <section className="oa-admin-intro">
         <div>
-          <p className="eyebrow">{plan.eyebrow}</p>
+          
           <h1>{plan.title}</h1>
           <p>{plan.summary}</p>
         </div>
@@ -168,7 +161,7 @@ export function DomainRoadmapScreen({ domain }: { domain: DomainKey }) {
 
       <div className="domain-roadmap-grid">
         <section className="card domain-roadmap-card">
-          <div className="section-heading"><div><p className="eyebrow">CURRENT SOURCE</p><h2>지금 운영 중인 원천</h2></div><small>{plan.sheets.length}개</small></div>
+          <div className="section-heading"><div><h2>지금 운영 중인 원천</h2></div><small>{plan.sheets.length}개</small></div>
           <ul className="domain-sheet-list">
             {plan.sheets.map((sheet) => (
               <li key={sheet.name}>
@@ -184,7 +177,7 @@ export function DomainRoadmapScreen({ domain }: { domain: DomainKey }) {
         </section>
 
         <section className="card domain-roadmap-card">
-          <div className="section-heading"><div><p className="eyebrow">TARGET SCOPE</p><h2>화면으로 옮길 범위</h2></div></div>
+          <div className="section-heading"><div><h2>화면으로 옮길 범위</h2></div></div>
           <ol className="domain-scope-list">
             {plan.scope.map((item) => <li key={item}>{item}</li>)}
           </ol>

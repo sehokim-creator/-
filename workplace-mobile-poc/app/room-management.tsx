@@ -188,7 +188,7 @@ export function RoomEmployeePanel({ rooms, buildingId, onBuildingChange, onBook,
   const floorLabel = floors.find((floor) => floor.id === floorId)?.label ?? "";
 
   return <>
-    <section className="room-intro room-finder-intro"><p className="eyebrow">MEETING SPACE</p><h1>회의실 찾기</h1><p>시간과 인원을 고르면 예약 가능한 공간을 바로 확인할 수 있어요.</p></section>
+    <section className="room-intro room-finder-intro"><h1>회의실 찾기</h1><p>시간과 인원을 고르면 예약 가능한 공간을 바로 확인할 수 있어요.</p></section>
     <BuildingPicker value={buildingId} onChange={(building) => { onBuildingChange(building); setSelectedRoomId(undefined); setBookingRoomId(undefined); }} />
     {buildingRooms.length === 0 ? <LocationSetupState buildingId={buildingId} /> : <>
       <section className="room-booking-bar"><label><span>날짜</span><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label><label><span>시작</span><input type="time" step="900" value={start} onChange={(event) => setStart(event.target.value)} /></label><label><span>시간</span><select value={duration} onChange={(event) => setDuration(Number(event.target.value))}><option value={30}>30분</option><option value={60}>1시간</option><option value={90}>90분</option></select></label></section>
@@ -206,7 +206,7 @@ export function RoomEmployeePanel({ rooms, buildingId, onBuildingChange, onBook,
           <span className="room-switch-track" aria-hidden="true" />
         </label>
       </section>
-      <section className="room-section-heading"><div><p className="eyebrow">ROOM FINDER{scope === "floor" ? ` · ${floorLabel}` : ""}</p><h2>예약 가능한 회의실</h2></div><span><b>{visibleRooms.length}</b>개 표시</span></section>
+      <section className="room-section-heading"><div><p className="eyebrow">{scope === "floor" ? floorLabel : "전체 층"}</p><h2>예약 가능한 회의실</h2></div><span><b>{visibleRooms.length}</b>개 표시</span></section>
       {scope === "floor" && <RoomFloorPicker value={floorId} onChange={(floor) => { setFloorId(floor); setSelectedRoomId(undefined); }} />}
       <div className="room-capacity-filter"><button className={capacity === 0 ? "selected" : ""} onClick={() => setCapacity(0)}>전체</button><button className={capacity === 6 ? "selected" : ""} onClick={() => setCapacity(6)}>6명+</button><button className={capacity === 10 ? "selected" : ""} onClick={() => setCapacity(10)}>10명+</button><button className={capacity === 16 ? "selected" : ""} onClick={() => setCapacity(16)}>16명+</button></div>
       <div className="room-list">{visibleRooms.map((room) => <RoomCard key={room.id} room={room} date={date} start={start} duration={duration} selected={selectedRoomId === room.id} onClick={() => setSelectedRoomId(room.id)} />)}</div>
@@ -235,7 +235,7 @@ export function RoomAdminPanel({ rooms, buildingId, onBuildingChange, onBook, on
     {buildingRooms.length === 0 ? <LocationSetupState buildingId={buildingId} admin /> : <>
       <section className="room-admin-summary"><article><span>전체 회의실</span><b>{stats.total}</b><small>{floorCount}개 층</small></article><article><span>지금 예약 가능</span><b>{stats.available}</b><small>14:00 기준</small></article><article><span>오늘 예약</span><b>{stats.bookings}</b><small>확정·승인대기</small></article><article><span>승인 대기</span><b>{stats.pending}</b><small>제한 회의실</small></article></section>
       <section className="room-admin-policy"><span><RoomIcon name="settings" /></span><div><small>BOOKING POLICY</small><b>회의실 예약 정책</b><em>15분 단위 · 최대 2시간 · 30일 전부터 예약 · 미체크인 자동 해제</em></div><button>설정</button></section>
-      <section className="room-section-heading admin"><div><p className="eyebrow">ROOM CONTROL</p><h2>예약·일정 관리</h2></div><span>관리자 대신 예약 가능</span></section>
+      <section className="room-section-heading admin"><div><h2>예약·일정 관리</h2></div><span>관리자 대신 예약 가능</span></section>
       <RoomFloorPicker value={floorId} onChange={(floor) => { setFloorId(floor); setSelectedRoomId(undefined); }} />
       <div className="room-list admin">{floorRooms.map((room) => <div key={room.id} className="room-admin-row"><RoomCard room={room} date={date} start={start} duration={duration} selected={selectedRoomId === room.id} onClick={() => setSelectedRoomId(room.id)} /><button className="room-admin-action" onClick={() => setBookingRoomId(room.id)}>구성원 대신 예약</button></div>)}</div>
       <section className="room-admin-map-note"><RoomIcon name="room" /><span><b>도면과 회의실을 함께 관리</b><small>실제 운영에서는 도면 위 회의실 위치·수용인원·장비·예약 제한을 관리자 화면에서 편집합니다.</small></span></section>

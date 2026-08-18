@@ -1019,7 +1019,7 @@ function HomeScreen({ requests, seats, rooms, seatAvailability, roomAvailability
         </section>
 
         <section className="section-block quick-action-section">
-          <div className="section-heading"><div><span className="eyebrow">QUICK ACTIONS</span><h2>바로 실행</h2></div><small>자주 쓰는 업무</small></div>
+          <div className="section-heading"><div><h2>바로 실행</h2></div><small>자주 쓰는 업무</small></div>
           <div className="quick-action-grid">
             <button type="button" className="quick-action-tile" onClick={onOpenSeat}>
               <span className="quick-action-icon tone-blue"><Icon name="chair" size={20} /></span>
@@ -1662,12 +1662,12 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
       <AppHeader title="운영현황" />
       <main className="screen ops-screen">
         <section className="ops-intro">
-          <div><p className="eyebrow">2026년 8월 18일 · ADMIN</p><h1>오늘 먼저 볼 업무</h1><p>통계보다 조치가 필요한 예외를 우선 보여드려요.</p></div>
+          <div><p className="eyebrow">2026년 8월 18일</p><h1>오늘 먼저 볼 업무</h1><p>통계보다 조치가 필요한 예외를 우선 보여드려요.</p></div>
           <span className="tag-positive">POC</span>
         </section>
 
         <section className="exception-center">
-          <div className="section-heading exception-center-heading"><div><p className="eyebrow">ACTION / EXCEPTION CENTER</p><h2>지금 조치할 항목</h2></div><span>{exceptions.length}건</span></div>
+          <div className="section-heading exception-center-heading"><div><h2>지금 조치할 항목</h2></div><span>{exceptions.length}건</span></div>
           <div className="filter-tabs exception-filter-tabs" role="tablist">
             {(["전체", "즉시", "오늘", "모니터링"] as const).map((item) => (
               <button role="tab" aria-selected={exceptionFilter === item} className={exceptionFilter === item ? "selected" : ""} key={item} onClick={() => setExceptionFilter(item)}>
@@ -1689,7 +1689,7 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
         </section>
 
         <section className="section-block admin-kpi-section">
-          <div className="section-heading"><div><p className="eyebrow">WORK KPI</p><h2>업무 처리</h2></div><span>완료 {completedCount}건</span></div>
+          <div className="section-heading"><div><h2>업무 처리</h2></div><span>완료 {completedCount}건</span></div>
           <div className="budget-kpi-grid admin-kpi-grid">
             <article><span>신규 접수</span><b>{newCount}<small>건</small></b><small>확인 필요</small></article>
             <article><span>처리 중</span><b>{processingCount}<small>건</small></b><small>Task 진행</small></article>
@@ -1699,7 +1699,7 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
         </section>
 
         <section className="section-block admin-kpi-section">
-          <div className="section-heading"><div><p className="eyebrow">WORKPLACE KPI</p><h2>공간 운영</h2></div><button onClick={onOpenSeatAdmin}>관리 열기</button></div>
+          <div className="section-heading"><div><h2>공간 운영</h2></div><button onClick={onOpenSeatAdmin}>관리 열기</button></div>
           <div className="budget-kpi-grid admin-kpi-grid">
             <article><span>전체 좌석</span><b>{seatTotals.total}<small>석</small></b><small>고정·공유</small></article>
             <article><span>배정 가능</span><b>{seatTotals.available}<small>석</small></b><small>오늘 기준</small></article>
@@ -1709,7 +1709,7 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
         </section>
 
         <section className="section-block admin-kpi-section">
-          <div className="section-heading"><div><p className="eyebrow">COST KPI</p><h2>비용·계약</h2></div><button onClick={onOpenBudgetAdmin}>현황 열기</button></div>
+          <div className="section-heading"><div><h2>비용·계약</h2></div><button onClick={onOpenBudgetAdmin}>현황 열기</button></div>
           <div className="budget-kpi-grid admin-kpi-grid">
             <article><span>승인 예산</span><b>{budget.budget.toFixed(1)}<small>억원</small></b><small>2026 POC</small></article>
             <article><span>실제 집행</span><b>{budget.actual.toFixed(1)}<small>억원</small></b><small>ERP 예시</small></article>
@@ -1719,7 +1719,7 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
         </section>
 
         <section className="section-block admin-kpi-section">
-          <div className="section-heading"><div><p className="eyebrow">PEOPLE KPI</p><h2>구성원 운영</h2></div><button onClick={onOpenPeopleAdmin}>통합 보기</button></div>
+          <div className="section-heading"><div><h2>구성원 운영</h2></div><button onClick={onOpenPeopleAdmin}>통합 보기</button></div>
           <div className="budget-kpi-grid admin-kpi-grid">
             <article><span>재직 구성원</span><b>{people.active}<small>명</small></b><small>POC 스냅샷</small></article>
             <article><span>입사 준비</span><b>{people.onboarding}<small>명</small></b><small>7일 이내</small></article>
@@ -1729,7 +1729,7 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
         </section>
 
         <section className="section-block admin-modules-section">
-          <div className="section-heading"><div><p className="eyebrow">ADMIN MODULES</p><h2>운영 모듈</h2></div></div>
+          <div className="section-heading"><div><h2>운영 모듈</h2></div></div>
           <div className="admin-module-grid">
             <button className="admin-module-tile" onClick={onOpenSeatAdmin}><span className="quick-action-icon tone-pink"><Icon name="chair" size={20} /></span><b>좌석·공간</b><small>정책·배정·예약</small></button>
             <button className="admin-module-tile" onClick={onOpenPeopleAdmin}><span className="quick-action-icon tone-blue"><Icon name="user" size={20} /></span><b>구성원 지원 현황</b><small>업무·공간·OA 통합 조회</small></button>
@@ -1739,7 +1739,7 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
         </section>
 
         <section className="section-block queue-section">
-          <div className="section-heading"><div><p className="eyebrow">TODAY WORK QUEUE</p><h2>오늘의 Case Queue</h2></div><span>{openRequests.length}건</span></div>
+          <div className="section-heading"><div><h2>오늘의 Case Queue</h2></div><span>{openRequests.length}건</span></div>
           <div className="filter-tabs queue-filter-tabs" role="tablist">
             {(["전체", "SLA 위험", "미배정", "승인 대기"] as const).map((item) => (
               <button role="tab" aria-selected={queueFilter === item} className={queueFilter === item ? "selected" : ""} key={item} onClick={() => setQueueFilter(item)}>

@@ -1732,7 +1732,7 @@ function OpsScreen({ requests, seatTotals, roomStats, onAdvance, onOpenSeatAdmin
   );
 }
 
-function BottomNavigation({ active, onChange }: { active: NavigationTab; onChange: (tab: NavigationTab) => void }) {
+function BottomNavigation({ active, onChange, desktopOnly }: { active: NavigationTab; onChange: (tab: NavigationTab) => void; desktopOnly?: boolean }) {
   const tabs: Array<{ id: NavigationTab; label: string; icon: IconName }> = [
     { id: "home", label: "홈", icon: "home" },
     { id: "request", label: "신청", icon: "plus" },
@@ -1742,7 +1742,7 @@ function BottomNavigation({ active, onChange }: { active: NavigationTab; onChang
   ];
 
   return (
-    <nav className="bottom-nav" aria-label="주요 메뉴">
+    <nav className={`bottom-nav ${desktopOnly ? "bottom-nav-desktop-only" : ""}`} aria-label="주요 메뉴">
       {tabs.map((tab) => (
         <button className={active === tab.id ? "active" : ""} key={tab.id} onClick={() => onChange(tab.id)}>
           <Icon name={tab.icon} size={22} /><span>{tab.label}</span>
@@ -1957,6 +1957,9 @@ export default function Home() {
 
   const seatTotals = getSeatTotals(seats, seatPolicies, seatReservations, "2026-08-18");
   const roomStats = getRoomStats(rooms);
+  // Admin sub-screens are reached with a back button on mobile, so the tab bar
+  // is hidden there; on desktop the same nav is the left rail and stays put.
+  const isAdminSubScreen = activeTab === "seatAdmin" || activeTab === "budgetAdmin" || activeTab === "peopleAdmin" || activeTab === "oaAdmin";
 
   return (
     <div className="page-stage">
@@ -1989,7 +1992,11 @@ export default function Home() {
           <OpsScreen requests={requests} seatTotals={seatTotals} roomStats={roomStats} onAdvance={advanceRequest} onOpenSeatAdmin={() => changeTab("seatAdmin")} onOpenBudgetAdmin={() => changeTab("budgetAdmin")} onOpenPeopleAdmin={() => changeTab("peopleAdmin")} onOpenOaAdmin={() => changeTab("oaAdmin")} />
         )}
 
-        {!selectedRequest && activeTab !== "seatAdmin" && activeTab !== "budgetAdmin" && activeTab !== "peopleAdmin" && activeTab !== "oaAdmin" && <BottomNavigation active={activeTab} onChange={(tab) => tab === "request" ? openRequest() : changeTab(tab)} />}
+        <BottomNavigation
+          active={isAdminSubScreen ? "ops" : activeTab}
+          desktopOnly={Boolean(selectedRequest) || isAdminSubScreen}
+          onChange={(tab) => tab === "request" ? openRequest() : changeTab(tab)}
+        />
         {toast && <div className="toast" role="status"><span><Icon name="check" size={16} /></span>{toast}</div>}
       </div>
     </div>

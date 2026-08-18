@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { createContext, Fragment, useContext, useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { createIntegrationEnvelope } from "../lib/integration-contract";
 import type { IntegrationEnvelope } from "../lib/integration-contract";
@@ -894,6 +894,38 @@ function navGroupFor(title: string): string | undefined {
   return navGroups.find((group) => group.items.some((item) => item.deskLabel === title))?.label;
 }
 
+/*
+ * Who is signed in and where they sit. Every screen's header shows this, so it
+ * travels by context rather than through ten AppHeader call sites — and because
+ * the seat comes from live state, a reassignment on 좌석·공간 is reflected in the
+ * header without anything being wired up per screen.
+ */
+type Identity = { name: string; department: string; building: string; status: string; seatId?: string; onSignOut: () => void };
+
+const IdentityContext = createContext<Identity | null>(null);
+
+function HeaderIdentity() {
+  const identity = useContext(IdentityContext);
+  if (!identity) return null;
+  return (
+    <div className="app-identity">
+      {identity.seatId && (
+        <span className="app-identity-seat">
+          <Icon name="chair" size={15} />
+          <span><small>내 좌석</small><b>{identity.seatId}</b></span>
+        </span>
+      )}
+      <span className="app-identity-avatar" aria-hidden="true">{identity.name[0]}</span>
+      <span className="app-identity-who">
+        <b>{identity.name}</b>
+        <small>{identity.department} · {identity.building}</small>
+      </span>
+      <span className="app-identity-status">{identity.status}</span>
+      <button className="app-identity-signout" type="button" onClick={identity.onSignOut}>로그아웃</button>
+    </div>
+  );
+}
+
 function AppHeader({ title, back, onBack }: { title?: string; back?: boolean; onBack?: () => void }) {
   const group = title ? navGroupFor(title) : undefined;
   return (
@@ -907,6 +939,7 @@ function AppHeader({ title, back, onBack }: { title?: string; back?: boolean; on
       )}
       {group && <span className="top-crumb">{group}</span>}
       {title && <h1>{title}</h1>}
+      <HeaderIdentity />
       <button className="icon-button notification-button" aria-label="알림"><Icon name="bell" /><span className="notification-dot" /></button>
     </header>
   );
@@ -1773,10 +1806,19 @@ type NavItem = { id: Tab; label: string; deskLabel: string; desc: string; icon: 
  *
  * onTabBar marks the five items the mobile tab bar shows; the rest are
  * desktop-rail only because mobile reaches them through 운영현황.
+ *
+ * Each group doubles as a section of the desktop rail: railLabel and icon are
+ * what the narrow first column shows, label titles the second column and names
+ * the group in the breadcrumb.
  */
-const navGroups: Array<{ label: string; items: NavItem[] }> = [
+type NavSection = "mine" | "ops" | "master";
+
+const navGroups: Array<{ id: NavSection; label: string; railLabel: string; icon: IconName; items: NavItem[] }> = [
   {
-    label: "MY WORKPLACE",
+    id: "mine",
+    label: "내 업무",
+    railLabel: "내 업무",
+    icon: "home",
     items: [
       { id: "home", label: "홈", deskLabel: "홈", desc: "오늘의 업무", icon: "home", onTabBar: true },
       { id: "request", label: "신청", deskLabel: "업무 요청", desc: "서비스 카탈로그", icon: "plus", onTabBar: true },
@@ -1785,7 +1827,10 @@ const navGroups: Array<{ label: string; items: NavItem[] }> = [
     ],
   },
   {
-    label: "OPERATIONS",
+    id: "ops",
+    label: "운영 관리",
+    railLabel: "운영",
+    icon: "chart",
     items: [
       { id: "ops", label: "운영", deskLabel: "운영현황", desc: "예외·KPI·Case Queue", icon: "chart", onTabBar: true },
       { id: "oaAdmin", label: "OA", deskLabel: "OA 신청·반납", desc: "승인·현황 확인", icon: "package" },
@@ -1796,7 +1841,10 @@ const navGroups: Array<{ label: string; items: NavItem[] }> = [
     ],
   },
   {
-    label: "WORKPLACE MASTER",
+    id: "master",
+    label: "기준 정보",
+    railLabel: "기준정보",
+    icon: "building",
     items: [
       { id: "seatAdmin", label: "공간 관리", deskLabel: "좌석·공간 관리", desc: "정책·배정·예약", icon: "building" },
       { id: "assetAdmin", label: "자산", deskLabel: "자산·렌탈 관리", desc: "렌탈 기기·지급 자산", icon: "pin" },
@@ -1807,44 +1855,77 @@ const navGroups: Array<{ label: string; items: NavItem[] }> = [
   },
 ];
 
-function BottomNavigation({ active, onChange, desktopOnly, onSignOut }: { active: Tab; onChange: (tab: Tab) => void; desktopOnly?: boolean; onSignOut: () => void }) {
+/*
+ * One component serves three layouts.
+ *
+ * Mobile keeps the tab bar: only the five onTabBar items are shown, ordered by
+ * CSS rather than by DOM order so the rail can nest them inside groups.
+ *
+ * Desktop splits into two columns, as the purchasing console does — a narrow
+ * rail of section icons, then a panel listing that section's screens. Fifteen
+ * items in one flat column was the complaint; this shows at most six.
+ *
+ * The panel renders every item and lets the desktop breakpoint hide the closed
+ * sections. Filtering in JS would have to know the viewport, and the mobile tab
+ * bar needs all five of its items regardless of which section is open.
+ */
+function BottomNavigation({ active, onChange, desktopOnly, openSection, onOpenSection }: {
+  active: Tab;
+  onChange: (tab: Tab) => void;
+  desktopOnly?: boolean;
+  openSection: NavSection;
+  onOpenSection: (section: NavSection) => void;
+}) {
+  const section = navGroups.find((group) => group.id === openSection) ?? navGroups[0];
   return (
-    <nav className={`bottom-nav ${desktopOnly ? "bottom-nav-desktop-only" : ""}`} aria-label="주요 메뉴">
-      <div className="nav-brand">
-        <span className="brand-dot" aria-hidden="true" />
-        <span><b>WORKPLACE</b><small>Employee Center</small></span>
-      </div>
+    <>
+      <aside className="nav-rail" aria-label="메뉴 구분">
+        <span className="nav-rail-brand brand-dot" aria-hidden="true" />
+        {navGroups.map((group) => (
+          <button
+            className={`nav-rail-item ${group.id === openSection ? "active" : ""}`}
+            data-rail={group.id}
+            key={group.id}
+            type="button"
+            aria-expanded={group.id === openSection}
+            onClick={() => onOpenSection(group.id)}
+          >
+            <Icon name={group.icon} size={21} />
+            <span>{group.railLabel}</span>
+          </button>
+        ))}
+      </aside>
 
-      {navGroups.map((group) => (
-        <Fragment key={group.label}>
-          <p className="nav-group-label">{group.label}</p>
-          {group.items.map((item) => (
-            <button
-              className={`${active === item.id ? "active" : ""}${item.onTabBar ? "" : " nav-item-desktop"}`}
-              data-nav={item.id}
-              key={item.id}
-              onClick={() => onChange(item.id)}
-            >
-              <Icon name={item.icon} size={22} />
-              <span className="nav-label">{item.label}</span>
-              <span className="nav-desk"><b>{item.deskLabel}</b><small>{item.desc}</small></span>
-            </button>
-          ))}
-        </Fragment>
-      ))}
+      <nav
+        className={`bottom-nav ${desktopOnly ? "bottom-nav-desktop-only" : ""}`}
+        data-open-section={openSection}
+        aria-label="주요 메뉴"
+      >
+        <div className="nav-brand">
+          <span><b>WORKPLACE</b><small>Employee Center</small></span>
+        </div>
+        <p className="nav-panel-title">{section.label}</p>
 
-      <div className="nav-profile">
-        <span className="nav-profile-avatar" aria-hidden="true">{EMPLOYEE.name[0]}</span>
-        <span>
-          <b>{EMPLOYEE.name}</b>
-          <small>{EMPLOYEE.department} · {getWorkplaceBuilding("pangyo").name}</small>
-          <em>{EMPLOYEE.status}</em>
-        </span>
-        <button className="nav-signout" type="button" onClick={onSignOut} aria-label="로그아웃">
-          <Icon name="arrow" size={16} />
-        </button>
-      </div>
-    </nav>
+        {navGroups.map((group) => (
+          <Fragment key={group.id}>
+            <p className="nav-group-label">{group.label}</p>
+            {group.items.map((item) => (
+              <button
+                className={`${active === item.id ? "active" : ""}${item.onTabBar ? "" : " nav-item-desktop"}`}
+                data-nav={item.id}
+                data-section={group.id}
+                key={item.id}
+                onClick={() => onChange(item.id)}
+              >
+                <Icon name={item.icon} size={22} />
+                <span className="nav-label">{item.label}</span>
+                <span className="nav-desk"><b>{item.deskLabel}</b><small>{item.desc}</small></span>
+              </button>
+            ))}
+          </Fragment>
+        ))}
+      </nav>
+    </>
   );
 }
 
@@ -1887,6 +1968,13 @@ export default function Home() {
   };
 
   const [activeTab, setActiveTab] = useState<Tab>("home");
+  /*
+   * Which rail section the second column is showing. It follows the active
+   * screen, so arriving anywhere opens the section that screen belongs to, but
+   * a rail click only changes this — you can look through a section's screens
+   * without being navigated out of the one you are on.
+   */
+  const [openSection, setOpenSection] = useState<NavSection>("mine");
   const [requests, setRequests] = useState<RequestItem[]>(initialRequests);
   const [seats, setSeats] = useState<SeatRecord[]>(() => createInitialSeats());
   const [seatPolicies, setSeatPolicies] = useState<SeatPolicyRecord[]>(() => createInitialSeatPolicies());
@@ -1901,6 +1989,11 @@ export default function Home() {
     setToast(message);
     window.setTimeout(() => setToast(""), 2800);
   };
+
+  useEffect(() => {
+    const section = navGroups.find((group) => group.items.some((item) => item.id === activeTab));
+    if (section) setOpenSection(section.id);
+  }, [activeTab]);
 
   const changeTab = (tab: Tab) => {
     setSelectedRequest(null);
@@ -2096,10 +2189,20 @@ export default function Home() {
   const roadmapDomain = roadmapTabs[activeTab];
   const isAdminSubScreen = activeTab === "seatAdmin" || activeTab === "budgetAdmin" || activeTab === "peopleAdmin" || activeTab === "oaAdmin" || Boolean(roadmapDomain);
 
+  const identity: Identity = {
+    name: EMPLOYEE.name,
+    department: EMPLOYEE.department,
+    building: getWorkplaceBuilding("pangyo").name,
+    status: EMPLOYEE.status,
+    seatId: seats.find((seat) => seat.assignedTo === "본인")?.id,
+    onSignOut: signOut,
+  };
+
   if (!sessionChecked) return <div className="page-stage" />;
   if (!session) return <div className="page-stage"><LoginScreen onLogin={signIn} /></div>;
 
   return (
+    <IdentityContext.Provider value={identity}>
     <div className="page-stage">
       <div className="mobile-app-shell">
         {selectedRequest ? (
@@ -2136,10 +2239,12 @@ export default function Home() {
           active={activeTab}
           desktopOnly={Boolean(selectedRequest) || isAdminSubScreen}
           onChange={(tab) => tab === "request" ? openRequest() : changeTab(tab)}
-          onSignOut={signOut}
+          openSection={openSection}
+          onOpenSection={setOpenSection}
         />
         {toast && <div className="toast" role="status"><span><Icon name="check" size={16} /></span>{toast}</div>}
       </div>
     </div>
+    </IdentityContext.Provider>
   );
 }

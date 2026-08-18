@@ -469,9 +469,6 @@ span {
   font-weight: 750;
 }
 
-.nav-signout {
-  display: none;
-}
 
 .tag-attention {
   display: inline-flex;
@@ -1180,12 +1177,19 @@ span {
   transform: translateX(-50%);
 }
 
+/*
+ * Desktop-only nav chrome. The phone shows a five-item tab bar, so the brand
+ * block, the section rail, the group labels, the item subtitles and the ten
+ * admin destinations all stay hidden until the desktop breakpoint.
+ */
 .bottom-nav-desktop-only,
 .bottom-nav .nav-brand,
 .bottom-nav .nav-group-label,
-.bottom-nav .nav-profile,
+.bottom-nav .nav-panel-title,
 .bottom-nav .nav-desk,
-.bottom-nav button.nav-item-desktop {
+.bottom-nav button.nav-item-desktop,
+.nav-rail,
+.app-identity {
   display: none;
 }
 
@@ -6846,19 +6850,76 @@ span {
     width: auto;
     max-width: none;
     min-height: 100vh;
-    margin: 0 0 0 256px;
+    margin: 0 0 0 316px;
     border-radius: 0;
     box-shadow: none;
   }
 
-  /* bottom tab bar -> left navigation rail */
+  /*
+   * Two-column navigation, 84px rail + 232px panel.
+   *
+   * Fifteen destinations in one flat column was the problem. The rail carries
+   * the three sections; the panel lists only the open one, so the longest column
+   * is six items. Both are fixed, so neither scrolls away from the work area.
+   */
+  .nav-rail {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 21;
+    display: flex;
+    width: 84px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 22px 8px 16px;
+    border-right: 1px solid var(--line);
+    background: #fbfcfd;
+  }
+
+  .nav-rail-brand {
+    align-self: center;
+    margin-bottom: 18px;
+  }
+
+  .nav-rail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 4px;
+    border-radius: 14px;
+    background: transparent;
+    color: var(--muted);
+  }
+
+  .nav-rail-item span {
+    font-size: var(--fs-11);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .nav-rail-item:hover {
+    background: #f1f4f7;
+    color: var(--subtext);
+  }
+
+  /* The open section is where the panel is pointing, which is not necessarily
+     the screen you are on — so it reads as a selected tab, not as an address. */
+  .nav-rail-item.active {
+    background: #e9eef4;
+    color: var(--text);
+  }
+
+  /* bottom tab bar -> navigation panel beside the rail */
   .bottom-nav {
     top: 0;
     right: auto;
     bottom: 0;
-    left: 0;
+    left: 84px;
     display: flex;
-    width: 256px;
+    width: 232px;
     height: 100%;
     flex-direction: column;
     gap: 2px;
@@ -6871,6 +6932,27 @@ span {
     transform: none;
   }
 
+  .bottom-nav .nav-panel-title {
+    display: block;
+    margin: 0 10px 10px;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 780;
+    letter-spacing: -0.02em;
+  }
+
+  /* The panel renders every section; the closed two are hidden here rather than
+     in JS, which would have to know the viewport. One rule per section. */
+  .bottom-nav .nav-group-label {
+    display: none;
+  }
+
+  .bottom-nav[data-open-section="mine"] button[data-section]:not([data-section="mine"]),
+  .bottom-nav[data-open-section="ops"] button[data-section]:not([data-section="ops"]),
+  .bottom-nav[data-open-section="master"] button[data-section]:not([data-section="master"]) {
+    display: none;
+  }
+
   .bottom-nav-desktop-only {
     display: flex;
   }
@@ -6878,8 +6960,6 @@ span {
   /* grouped rail: brand, section labels, item subtitles and the profile card
      only exist at this size */
   .bottom-nav .nav-brand,
-  .bottom-nav .nav-group-label,
-  .bottom-nav .nav-profile,
   .bottom-nav .nav-desk,
   .bottom-nav button.nav-item-desktop {
     display: flex;
@@ -6892,7 +6972,7 @@ span {
   .nav-brand {
     align-items: center;
     gap: 10px;
-    padding: 4px 10px 18px;
+    padding: 0 10px 16px;
   }
 
   .nav-brand > span {
@@ -6943,77 +7023,6 @@ span {
 
   .bottom-nav button.active .nav-desk small {
     color: #7aa9ea;
-  }
-
-  .nav-profile {
-    align-items: center;
-    gap: 10px;
-    margin-top: auto;
-    padding: 12px 10px 4px;
-    border-top: 1px solid rgba(229, 232, 235, 0.9);
-  }
-
-  .nav-profile > span:last-child {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-  }
-
-  .nav-profile-avatar {
-    display: grid;
-    width: 34px;
-    height: 34px;
-    flex: none;
-    place-items: center;
-    border-radius: 50%;
-    background: #e8f2ff;
-    color: #3182f6;
-    font-size: 13px;
-    font-weight: 750;
-  }
-
-  .nav-profile b {
-    font-size: 12px;
-    font-weight: 730;
-  }
-
-  .nav-profile small {
-    overflow: hidden;
-    color: var(--muted);
-    font-size: var(--fs-10);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .nav-profile em {
-    margin-top: 3px;
-    color: #008f65;
-    font-size: var(--fs-10);
-    font-weight: 700;
-  }
-
-  .nav-profile em::before {
-    margin-right: 4px;
-    content: "\25CF";
-  }
-
-  .nav-profile {
-    position: relative;
-  }
-
-  .nav-signout {
-    display: grid;
-    width: 30px;
-    height: 30px;
-    flex: none;
-    place-items: center;
-    border-radius: 9px;
-    background: #f2f4f6;
-    color: var(--muted);
-  }
-
-  .nav-signout svg {
-    transform: rotate(180deg);
   }
 
   /* DOM order is the rail order; drop the tab-bar ordering here. Matches the
@@ -7431,8 +7440,124 @@ span {
     content: "/";
   }
 
-  .top-header .notification-button {
+  /*
+   * Identity, pinned to the top right of every screen.
+   *
+   * This used to be a card at the bottom of the rail, and the seat only appeared
+   * on 홈. It travels in the shared header now, so who you are and where you sit
+   * stay put on every screen — and the header sticks, so they stay put while the
+   * page scrolls too.
+   */
+  .top-header,
+  .top-header-title {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.94);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+
+  .app-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-left: auto;
+  }
+
+  /* The home greeting said the same three things the header now says on every
+     screen — name, team, work status. The header wins; it is always there. */
+  .home-screen .profile-hero {
+    display: none;
+  }
+
+  .app-identity-seat {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px 6px 10px;
+    border: 1px solid #dbe6f5;
+    border-radius: 11px;
+    background: #f4f8ff;
+    color: var(--primary);
+  }
+
+  .app-identity-seat > span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .app-identity-seat small {
+    color: #7ba4dd;
+    font-size: var(--fs-9);
+    font-weight: 700;
+  }
+
+  .app-identity-seat b {
+    font-size: 12px;
+    font-weight: 760;
+  }
+
+  .app-identity-avatar {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: #e8f2ff;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  .app-identity-who {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  .app-identity-who b {
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  .app-identity-who small {
+    color: var(--muted);
+    font-size: var(--fs-10);
+  }
+
+  .app-identity-status {
+    padding: 5px 10px;
+    border-radius: 9px;
+    background: #e3f7ef;
+    color: #00845f;
+    font-size: var(--fs-10);
+    font-weight: 730;
+  }
+
+  .app-identity-signout {
+    padding: 7px 11px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--subtext);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .app-identity-signout:hover {
+    background: #f7f8fa;
+    color: var(--text);
+  }
+
+  .top-header .notification-button {
+    order: 9;
   }
 
   /* The page heading. 22–25px on a 1584px canvas reads as a section label; the
@@ -7629,6 +7754,41 @@ span {
     text-overflow: clip;
     word-break: break-all;
     line-height: 1.35;
+  }
+}
+
+/*
+ * Narrow desktop: the breadcrumb and the identity share one row, and at 1024px
+ * the full identity leaves the breadcrumb 12px short of its own title. The seat
+ * and who-you-are are the parts worth keeping there, so the work-status pill and
+ * the team line fold away until the row has room again.
+ */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .app-identity-status,
+  .app-identity-who small {
+    display: none;
+  }
+
+  .app-identity {
+    gap: 10px;
+  }
+}
+
+/*
+ * The two-column nav takes 316px, so a 1024px window leaves 708px of content —
+ * paired into two columns that is ~340px each, narrow enough that the service
+ * notice clipped its own subtitle. One column until there is room for two.
+ */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .home-screen {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-screen > .today-reservation-card,
+  .home-screen > .recent-section,
+  .home-screen > .smart-intake,
+  .home-screen > .notice-card {
+    grid-column: 1;
   }
 }
 

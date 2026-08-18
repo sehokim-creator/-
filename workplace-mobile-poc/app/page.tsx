@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { createIntegrationEnvelope } from "../lib/integration-contract";
 import type { IntegrationEnvelope } from "../lib/integration-contract";
@@ -26,6 +26,8 @@ import { getWorkplaceBuilding } from "./workplace-locations";
 import { OaAdminScreen } from "./oa-management";
 import { DataFoundationCard, PeopleDirectoryScreen, getPeopleOverview } from "./people-directory";
 import { DomainRoadmapScreen, domainPlans } from "./domain-roadmap";
+import { LoginScreen } from "./login";
+import type { Session } from "./login";
 import type { DomainKey } from "./domain-roadmap";
 
 type Tab = "home" | "request" | "seat" | "mine" | "ops" | "seatAdmin" | "budgetAdmin" | "peopleAdmin" | "oaAdmin"
@@ -1785,7 +1787,7 @@ const navGroups: Array<{ label: string; items: NavItem[] }> = [
   },
 ];
 
-function BottomNavigation({ active, onChange, desktopOnly }: { active: Tab; onChange: (tab: Tab) => void; desktopOnly?: boolean }) {
+function BottomNavigation({ active, onChange, desktopOnly, onSignOut }: { active: Tab; onChange: (tab: Tab) => void; desktopOnly?: boolean; onSignOut: () => void }) {
   return (
     <nav className={`bottom-nav ${desktopOnly ? "bottom-nav-desktop-only" : ""}`} aria-label="주요 메뉴">
       <div className="nav-brand">
@@ -1818,12 +1820,52 @@ function BottomNavigation({ active, onChange, desktopOnly }: { active: Tab; onCh
           <small>{EMPLOYEE.department} · {getWorkplaceBuilding("pangyo").name}</small>
           <em>{EMPLOYEE.status}</em>
         </span>
+        <button className="nav-signout" type="button" onClick={onSignOut} aria-label="로그아웃">
+          <Icon name="arrow" size={16} />
+        </button>
       </div>
     </nav>
   );
 }
 
+const SESSION_KEY = "workplace-poc-session";
+
 export default function Home() {
+  // Demo gate only — see app/login.tsx. Restored from sessionStorage after
+  // mount so the server-rendered markup stays identical.
+  const [session, setSession] = useState<Session | null>(null);
+  const [sessionChecked, setSessionChecked] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = window.sessionStorage.getItem(SESSION_KEY);
+      if (saved) setSession(JSON.parse(saved) as Session);
+    } catch {
+      // ignore unreadable storage
+    }
+    setSessionChecked(true);
+  }, []);
+
+  const signIn = (next: Session) => {
+    setSession(next);
+    try {
+      window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
+    } catch {
+      // ignore unwritable storage
+    }
+  };
+
+  const signOut = () => {
+    setSession(null);
+    setActiveTab("home");
+    setSelectedRequest(null);
+    try {
+      window.sessionStorage.removeItem(SESSION_KEY);
+    } catch {
+      // ignore unwritable storage
+    }
+  };
+
   const [activeTab, setActiveTab] = useState<Tab>("home");
   const [requests, setRequests] = useState<RequestItem[]>(initialRequests);
   const [seats, setSeats] = useState<SeatRecord[]>(() => createInitialSeats());
@@ -2034,6 +2076,9 @@ export default function Home() {
   const roadmapDomain = roadmapTabs[activeTab];
   const isAdminSubScreen = activeTab === "seatAdmin" || activeTab === "budgetAdmin" || activeTab === "peopleAdmin" || activeTab === "oaAdmin" || Boolean(roadmapDomain);
 
+  if (!sessionChecked) return <div className="page-stage" />;
+  if (!session) return <div className="page-stage"><LoginScreen onLogin={signIn} /></div>;
+
   return (
     <div className="page-stage">
       <div className="mobile-app-shell">
@@ -2071,6 +2116,7 @@ export default function Home() {
           active={activeTab}
           desktopOnly={Boolean(selectedRequest) || isAdminSubScreen}
           onChange={(tab) => tab === "request" ? openRequest() : changeTab(tab)}
+          onSignOut={signOut}
         />
         {toast && <div className="toast" role="status"><span><Icon name="check" size={16} /></span>{toast}</div>}
       </div>

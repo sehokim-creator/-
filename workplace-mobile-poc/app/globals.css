@@ -312,6 +312,141 @@ span {
   white-space: nowrap;
 }
 
+/* Demo login gate */
+
+.login-screen {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 24px 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 24px 24px;
+  border: 1px solid rgba(229, 232, 235, 0.9);
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 12px 40px rgba(25, 31, 40, 0.08);
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.login-brand > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-brand b {
+  color: #333d4b;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.login-brand small {
+  margin-top: 1px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.login-card h1 {
+  margin: 24px 0 0;
+  font-size: 22px;
+  font-weight: 790;
+  letter-spacing: -0.03em;
+}
+
+.login-lead {
+  margin: 8px 0 0;
+  color: var(--subtext);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 22px;
+}
+
+.login-form label {
+  color: var(--subtext);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.login-form input {
+  height: 50px;
+  margin-top: 7px;
+  padding: 0 14px;
+  border: 1px solid #dfe4e8;
+  border-radius: 14px;
+  background: #f8f9fa;
+  font-size: 15px;
+}
+
+.login-form input:focus {
+  border-color: #6da7f8;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.09);
+}
+
+.login-error {
+  margin: 8px 0 0;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.login-submit {
+  height: 50px;
+  margin-top: 16px;
+  border-radius: 14px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 740;
+}
+
+.login-sso {
+  width: 100%;
+  height: 46px;
+  margin-top: 9px;
+  border: 1px solid #dfe4e8;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--subtext);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.login-note {
+  margin: 20px 0 0;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: #fff9f0;
+  color: var(--subtext);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.login-note b {
+  display: block;
+  margin-bottom: 3px;
+  color: #dc7b10;
+  font-weight: 750;
+}
+
+.nav-signout {
+  display: none;
+}
+
 .tag-attention {
   display: inline-flex;
   align-items: center;
@@ -6819,6 +6954,25 @@ span {
   .nav-profile em::before {
     margin-right: 4px;
     content: "\25CF";
+  }
+
+  .nav-profile {
+    position: relative;
+  }
+
+  .nav-signout {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: none;
+    place-items: center;
+    border-radius: 9px;
+    background: #f2f4f6;
+    color: var(--muted);
+  }
+
+  .nav-signout svg {
+    transform: rotate(180deg);
   }
 
   /* DOM order is the rail order; drop the tab-bar ordering here. Matches the

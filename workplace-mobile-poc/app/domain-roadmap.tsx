@@ -6,6 +6,10 @@
  * owns the pattern, and what the portal screen has to take over. These are
  * intake screens for review, not built-out modules — the POC deliberately does
  * not fake operational data for a domain it has no data contract for yet.
+ *
+ * Sheet titles below are demo labels rather than the team's real document
+ * names, so this build can be shared outside the company. Only an internal
+ * build should carry the actual titles.
  */
 
 export type DomainKey =
@@ -35,9 +39,9 @@ export const domainPlans: Record<DomainKey, DomainPlan> = {
     reference: "Envoy 방문자·현장 경험 / ServiceNow WSD Visitor Management",
     owner: "출입보안 운영",
     sheets: [
-      { name: "외부인 출입카드 현황", note: "어시스턴트·센터관리용·외주협력사·외부감사대응·건물관리 카드" },
-      { name: "블루-b빌딩 지문 등록/삭제 가이드", note: "지문 등록·삭제 절차 문서" },
-      { name: "출입보안 공사", note: "공사 이력" },
+      { name: "외부 인원 출입카드 대장", note: "어시스턴트·센터관리용·외주협력사·외부감사대응·건물관리 카드" },
+      { name: "지문 등록·삭제 절차 가이드", note: "지문 등록·삭제 절차 문서" },
+      { name: "출입보안 설비 공사 이력", note: "공사 이력" },
     ],
     scope: [
       "카드 종류별 대장을 사람·업체·유효기간 기준으로 통합",
@@ -55,7 +59,7 @@ export const domainPlans: Record<DomainKey, DomainPlan> = {
     owner: "주차 운영 · 정산 담당",
     sheets: [
       { name: "정기주차권 입차율 리포트", note: "월별 입차율 자동 계산" },
-      { name: "GA User Management - Payments", note: "주차 대기 순번" },
+      { name: "구성원 지원 대장", note: "주차 대기 순번" },
     ],
     scope: [
       "월별 입차율을 이용률 지표로 옮기고 잔여면 기준을 자동 계산",
@@ -67,21 +71,21 @@ export const domainPlans: Record<DomainKey, DomainPlan> = {
   welfare: {
     eyebrow: "WELFARE & SUPPLIES",
     title: "복리후생·물품 운영",
-    summary: "편의점·경조사·맘스키트·북사일로처럼 신청과 비용이 함께 움직이는 운영 업무입니다.",
+    summary: "편의점·경조사·육아용품·도서공간처럼 신청과 비용이 함께 움직이는 운영 업무입니다.",
     reference: "Freshservice Service Catalog / WSD Case Management",
     owner: "복리후생 운영 · 총무 비품 운영",
     sheets: [
-      { name: "편의점 비용 모니터링", note: "운영 예산 및 데일리 사용 금액" },
-      { name: "경조사 물품 신청 히스토리", note: "화환·화분 외부 발송 이력" },
-      { name: "맘스키트 신청 현황", note: "커뮤니티 신청 현황" },
-      { name: "Book Silo 이용 현황", note: "북사일로 운영 데이터" },
-      { name: "굿즈 현황", note: "페이먼츠 보유 굿즈" },
+      { name: "사내 편의점 운영비 모니터링", note: "운영 예산 및 데일리 사용 금액" },
+      { name: "경조사 물품 발송 이력", note: "화환·화분 등 외부 발송 이력" },
+      { name: "육아용품 지원 신청 현황", note: "사내 신청 현황" },
+      { name: "사내 도서공간 이용 현황", note: "도서공간 운영 데이터" },
+      { name: "사내 굿즈 재고 현황", note: "보유 굿즈 수량" },
       { name: "Green Metrics", note: "친환경 활동 지표" },
     ],
     scope: [
       "신청 히스토리를 서비스 카탈로그 요청 유형으로 흡수",
       "데일리 사용 금액을 비용 이상 신호와 같은 기준으로 연결",
-      "재고형(굿즈·비품)과 이용형(북사일로) 지표를 분리",
+      "재고형(굿즈·비품)과 이용형(도서공간) 지표를 분리",
     ],
     depends: "요청·Case 도메인, 물품 재고 도메인, 비용 도메인",
   },
@@ -92,13 +96,13 @@ export const domainPlans: Record<DomainKey, DomainPlan> = {
     reference: "ServiceNow WSD Maintenance Management / OnSpace 공간 정책",
     owner: "OA 자산관리 · 시설 운영",
     sheets: [
-      { name: "렌탈 기기 현황", note: "세스코·코웨이 등 렌탈 기기 리스트 및 위치" },
-      { name: "GA User Management - Payments", note: "렌탈 자산·별도 구매·법인폰·허먼밀러 대기" },
+      { name: "렌탈 기기 현황", note: "정수기·방역 등 렌탈 기기 리스트 및 위치" },
+      { name: "구성원 지원 대장", note: "렌탈 자산·별도 구매·업무용 휴대폰·의자 지급 대기" },
     ],
     scope: [
       "렌탈 기기를 건물·층·구역에 배치해 공간 마스터와 연결",
       "계약 주기·점검 주기를 갱신 알림 대상으로 승격",
-      "허먼밀러 등 지급 대기열을 순번이 보이는 목록으로 전환",
+      "의자 등 지급 대기열을 순번이 보이는 목록으로 전환",
       "자산번호·시리얼·이력은 AMS에 두고 요약만 조회",
     ],
     depends: "OA 현황(AMS) 도메인, 건물·층 도메인, 계약 도메인",
@@ -110,9 +114,9 @@ export const domainPlans: Record<DomainKey, DomainPlan> = {
     reference: "SaaS Management(SAM) / WSD Lease Administration의 갱신 모델",
     owner: "SW 중앙관리",
     sheets: [
-      { name: "chatGPT 시트 수량 및 CAP 설정", note: "좌석 수량·CAP" },
-      { name: "JetBrains 라이선스 견적가 변동 및 할인율 적용 확인 여부", note: "단가 변동·할인율" },
-      { name: "SW 중앙관리 대시보드 구축 프로젝트 요약", note: "진행 중 프로젝트" },
+      { name: "AI 도구 좌석 수·CAP 설정", note: "좌석 수량·CAP" },
+      { name: "개발도구 라이선스 단가 변동·할인율 검토", note: "단가 변동·할인율" },
+      { name: "SW 중앙관리 대시보드 구축 계획", note: "진행 중 프로젝트" },
     ],
     scope: [
       "제품별 보유 좌석·사용 좌석·CAP을 한 줄로 비교",
@@ -126,10 +130,10 @@ export const domainPlans: Record<DomainKey, DomainPlan> = {
     title: "승인·전결 기준",
     summary: "요청 금액과 유형에 따른 전결 단계를 마스터로 관리해 화면의 승인 단계를 여기서 결정합니다.",
     reference: "Freshservice Approval Workflow / WSD Case Management",
-    owner: "Legal & Compliance Team",
+    owner: "법무·컴플라이언스",
     sheets: [
-      { name: "페이먼츠 직무 전결 기준", note: "직무별 전결 기준" },
-      { name: "재산종합보험 갱신 분석 — 2025 vs 2026", note: "갱신 의사결정 기준 예시" },
+      { name: "직무 전결 기준", note: "직무별 전결 기준" },
+      { name: "재산종합보험 갱신 비교 분석", note: "갱신 의사결정 기준 예시" },
     ],
     scope: [
       "지금 화면에 문자열로 박혀 있는 승인 단계를 전결 기준 마스터에서 계산",

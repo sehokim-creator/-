@@ -60,7 +60,7 @@ export function PeopleDirectoryScreen() {
       </section>
 
       <section className="oa-boundary-note"><b>이 화면의 역할</b><p>새로운 인사시스템이 아니라, HR을 기준 정보로 사용해 흩어진 Workplace 업무를 구성원별로 모아 보는 관리자 조회 화면입니다.</p></section>
-      <section className="oa-boundary-note poc"><b>POC 예시 데이터</b><p>HR·GA User Management의 구조를 재현한 샘플이며 실제 인사정보가 아닙니다. 인사 원본은 변경하지 않습니다.</p></section>
+      <section className="oa-boundary-note poc"><b>POC 예시 데이터</b><p>HR·구성원 지원 대장의 구조를 재현한 샘플이며 실제 인사정보가 아닙니다. 인사 원본은 변경하지 않습니다.</p></section>
 
       <section className="budget-kpi-grid oa-kpi-grid">
         <article><span>재직 구성원</span><b>{overview.active}<small>명</small></b><small>POC 스냅샷</small></article>
